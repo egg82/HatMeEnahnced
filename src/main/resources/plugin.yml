@@ -1,0 +1,10 @@
+name: HatMeEnhanced
+main: me.egg82.hme.HatMeEnhanced
+version: 1.0.0
+commands:
+  hat:
+    description: Puts the item (or item stack with -a) in your hand on your head. Optionally uses an item ID instead. 
+    usage: /hat [-a,itemID]
+  unhat:
+    description: Puts the item in your head in your inventory.
+    usage: /unhat
