@@ -12,6 +12,7 @@ import org.bukkit.inventory.PlayerInventory;
 
 import ninja.egg82.events.patterns.command.CommandEvent;
 import ninja.egg82.patterns.ServiceLocator;
+import ninja.egg82.plugin.utils.ReflectionUtil;
 import ninja.egg82.registry.interfaces.IRegistry;
 import ninja.egg82.utils.Util;
 import me.egg82.hme.commands.base.BasePluginCommand;
@@ -37,12 +38,12 @@ public class HatCommand extends BasePluginCommand {
 	protected void execute() {
 		if (isValid(true, PermissionsType.HAT, new int[]{0,1})) {
 			if (args.length == 0) {
-				ItemStack hand = ((Player) sender).getInventory().getItemInMainHand();
+				ItemStack hand = ReflectionUtil.getItemInMainHand((Player) sender);
 				ItemStack hand2 = new ItemStack(hand);
 				hand2.setAmount(1);
 				if (hat((Player) sender, hand2)) {
 					if (hand.getAmount() == 1) {
-						((Player) sender).getInventory().setItemInMainHand(null);
+						ReflectionUtil.setItemInMainHand((Player) sender, null);
 					} else {
 						hand.setAmount(hand.getAmount() - 1);
 					}
