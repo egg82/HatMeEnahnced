@@ -84,6 +84,7 @@ public class HatMeEnhanced extends BasePlugin {
 		for (Material m : materials) {
 			if (m != null) {
 				permissionsManager.addPermission("hme.hat." + Integer.toString(m.getId()));
+				permissionsManager.addPermission("hme.hat." + m.toString().toLowerCase());
 			}
 		}
 		
@@ -104,9 +105,9 @@ public class HatMeEnhanced extends BasePlugin {
 		}
 	};
 	private void checkUpdate() {
-		/*Updater updater = new Updater(this, 100359, getFile(), UpdateType.NO_DOWNLOAD, false);
+		Updater updater = new Updater(this, 100559, getFile(), UpdateType.NO_DOWNLOAD, false);
 		if (updater.getResult() == UpdateResult.UPDATE_AVAILABLE) {
 			Bukkit.getConsoleSender().sendMessage(ChatColor.YELLOW + "--== " + ChatColor.GREEN + "HatMeEnhanced UPDATE AVAILABLE" + ChatColor.YELLOW + " ==--");
-		}*/
+		}
 	}
 }

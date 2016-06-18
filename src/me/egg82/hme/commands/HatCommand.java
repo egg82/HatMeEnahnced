@@ -94,7 +94,7 @@ public class HatCommand extends BasePluginCommand {
 	}
 	@SuppressWarnings("deprecation")
 	private boolean hat(Player player, ItemStack stack) {
-		if (!permissionsManager.playerHasPermission((Player) sender, PermissionsType.HAT + "." + stack.getTypeId()) && !permissionsManager.playerHasPermission(player, PermissionsType.ANY)) {
+		if (!permissionsManager.playerHasPermission((Player) sender, PermissionsType.HAT + "." + stack.getTypeId()) && !permissionsManager.playerHasPermission((Player) sender, PermissionsType.HAT + "." + stack.getType().toString().toLowerCase()) && !permissionsManager.playerHasPermission(player, PermissionsType.ANY)) {
 			sender.sendMessage(MessageType.NO_PERMISSIONS);
 			dispatch(CommandEvent.ERROR, CommandErrorType.NO_PERMISSIONS);
 			return false;
