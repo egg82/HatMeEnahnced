@@ -1,13 +1,9 @@
 package me.egg82.hme.util;
 
-import java.util.List;
-
 import org.bukkit.Location;
 
+import ru.beykerykt.lightapi.LightAPI;
 import ru.beykerykt.lightapi.chunks.ChunkInfo;
-import ru.beykerykt.lightapi.chunks.Chunks;
-import ru.beykerykt.lightapi.light.LightDataRequest;
-import ru.beykerykt.lightapi.light.Lights;
 
 public class LightHelper {
 	//vars
@@ -19,71 +15,25 @@ public class LightHelper {
 	
 	//public
 	public static void addLight(Location loc, boolean async) {
-		LightDataRequest req = null;
-		
-		try {
-			req = Lights.createLight(loc, 15, async);
-		} catch (Exception ex) {
-			
-		}
-		
-		if (req != null) {
-			Chunks.addChunkToQueue(req);
-		} else {
-			List<ChunkInfo> chunks = Chunks.collectModifiedChunks(loc);
-			if (chunks != null) {
-				for (ChunkInfo info : chunks) {
-					Chunks.sendChunkUpdate(info);
-				}
-			}
+		LightAPI.createLight(loc, 15, async);
+		for (ChunkInfo info : LightAPI.collectChunks(loc)) {
+			LightAPI.updateChunks(info);
 		}
 	}
 	public static void removeLight(Location loc, boolean async) {
-		LightDataRequest req = null;
-		
-		try {
-			req = Lights.deleteLight(loc, async);
-		} catch (Exception ex) {
-			
-		}
-		
-		if (req != null) {
-			Chunks.addChunkToQueue(req);
-		} else {
-			List<ChunkInfo> chunks = Chunks.collectModifiedChunks(loc);
-			if (chunks != null) {
-				for (ChunkInfo info : chunks) {
-					Chunks.sendChunkUpdate(info);
-				}
-			}
+		LightAPI.deleteLight(loc, async);
+		for (ChunkInfo info : LightAPI.collectChunks(loc)) {
+			LightAPI.updateChunks(info);
 		}
 	}
 	public static void recreateLight(Location oldLoc, Location newLoc, boolean async) {
-		LightDataRequest req = null;
-		List<ChunkInfo> chunks = null;
-		
-		try {
-			Lights.deleteLight(oldLoc, async);
-			req = Lights.createLight(newLoc, 15, async);
-		} catch (Exception ex) {
-			
+		LightAPI.deleteLight(oldLoc, async);
+		LightAPI.createLight(newLoc, 15, async);
+		for (ChunkInfo info : LightAPI.collectChunks(oldLoc)) {
+			LightAPI.updateChunks(info);
 		}
-		
-		if (req != null) {
-			Chunks.addChunkToQueue(req);
-		} else {
-			chunks = Chunks.collectModifiedChunks(oldLoc);
-			if (chunks != null) {
-				for (ChunkInfo info : chunks) {
-					Chunks.sendChunkUpdate(info);
-				}
-			}
-			chunks = Chunks.collectModifiedChunks(newLoc);
-			if (chunks != null) {
-				for (ChunkInfo info : chunks) {
-					Chunks.sendChunkUpdate(info);
-				}
-			}
+		for (ChunkInfo info : LightAPI.collectChunks(newLoc)) {
+			LightAPI.updateChunks(info);
 		}
 	}
 	

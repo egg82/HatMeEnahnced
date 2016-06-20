@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>ninja.egg82.plugins</groupId>
   <artifactId>HatMeEnhanced</artifactId>
-  <version>1.0.1</version>
+  <version>1.0.2</version>
   <name>HatMeEnhanced</name>
   <build>
     <sourceDirectory>src</sourceDirectory>
@@ -117,7 +117,7 @@
     <dependency>
       <groupId>ru.beykerykt</groupId>
       <artifactId>lightapi</artifactId>
-      <version>2.0.3</version>
+      <version>3.0.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
