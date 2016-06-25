@@ -1,21 +1,20 @@
 package me.egg82.hme.events;
 
 import org.bukkit.Location;
-import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 
+import me.egg82.hme.enums.PluginServiceType;
+import me.egg82.hme.util.LightHelper;
 import ninja.egg82.patterns.ServiceLocator;
 import ninja.egg82.plugin.commands.EventCommand;
 import ninja.egg82.registry.interfaces.IRegistry;
 
-import me.egg82.hme.enums.PluginServiceType;
-import me.egg82.hme.util.LightHelper;
-
-public class PlayerMoveEventCommand extends EventCommand {
+public class PlayerTeleportEventCommand extends EventCommand {
 	//vars
 	IRegistry glowRegistry = (IRegistry) ServiceLocator.getService(PluginServiceType.GLOW_REGISTRY);
 	
 	//constructor
-	public PlayerMoveEventCommand() {
+	public PlayerTeleportEventCommand() {
 		super();
 	}
 	
@@ -23,7 +22,7 @@ public class PlayerMoveEventCommand extends EventCommand {
 	
 	//private
 	protected void execute() {
-		PlayerMoveEvent e = (PlayerMoveEvent) event;
+		PlayerTeleportEvent e = (PlayerTeleportEvent) event;
 		
 		if (e.isCancelled()) {
 			return;

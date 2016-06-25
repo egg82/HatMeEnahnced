@@ -1,5 +1,7 @@
 package me.egg82.hme.util;
 
+import java.util.List;
+
 import org.bukkit.Location;
 
 import ru.beykerykt.lightapi.LightAPI;
@@ -17,23 +19,36 @@ public class LightHelper {
 	public static void addLight(Location loc, boolean async) {
 		LightAPI.createLight(loc, 15, async);
 		for (ChunkInfo info : LightAPI.collectChunks(loc)) {
-			LightAPI.updateChunks(info);
+			LightAPI.updateChunk(info);
 		}
 	}
 	public static void removeLight(Location loc, boolean async) {
 		LightAPI.deleteLight(loc, async);
 		for (ChunkInfo info : LightAPI.collectChunks(loc)) {
-			LightAPI.updateChunks(info);
+			LightAPI.updateChunk(info);
 		}
 	}
 	public static void recreateLight(Location oldLoc, Location newLoc, boolean async) {
 		LightAPI.deleteLight(oldLoc, async);
 		LightAPI.createLight(newLoc, 15, async);
-		for (ChunkInfo info : LightAPI.collectChunks(oldLoc)) {
-			LightAPI.updateChunks(info);
+		
+		List<ChunkInfo> oldChunks = LightAPI.collectChunks(oldLoc);
+		for (ChunkInfo info : oldChunks) {
+			LightAPI.updateChunk(info);
 		}
 		for (ChunkInfo info : LightAPI.collectChunks(newLoc)) {
-			LightAPI.updateChunks(info);
+			boolean good = true;
+			for (int i = 0; i < oldChunks.size(); i++) {
+				ChunkInfo info2 = oldChunks.get(i);
+				if (info2.getChunkX() == info.getChunkX() && info2.getChunkZ() == info.getChunkZ()) {
+					good = false;
+					break;
+				}
+			}
+			
+			if (good) {
+				LightAPI.updateChunk(info);
+			}
 		}
 	}
 	

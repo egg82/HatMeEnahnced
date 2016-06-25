@@ -1,6 +1,5 @@
 package me.egg82.hme.events;
 
-import org.bukkit.event.Event;
 import org.bukkit.event.player.PlayerKickEvent;
 
 import ninja.egg82.patterns.ServiceLocator;
@@ -15,8 +14,8 @@ public class PlayerKickEventCommand extends EventCommand {
 	IRegistry glowRegistry = (IRegistry) ServiceLocator.getService(PluginServiceType.GLOW_REGISTRY);
 	
 	//constructor
-	public PlayerKickEventCommand(Event event) {
-		super(event);
+	public PlayerKickEventCommand() {
+		super();
 	}
 	
 	//public

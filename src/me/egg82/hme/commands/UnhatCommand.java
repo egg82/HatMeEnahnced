@@ -1,8 +1,6 @@
 package me.egg82.hme.commands;
 
 import org.bukkit.Location;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -23,34 +21,20 @@ public class UnhatCommand extends PluginCommand {
 	IRegistry glowRegistry = (IRegistry) ServiceLocator.getService(PluginServiceType.GLOW_REGISTRY);
 	
 	//constructor
-	public UnhatCommand(CommandSender sender, Command command, String label, String[] args) {
-		super(sender, command, label, args);
+	public UnhatCommand() {
+		super();
 	}
 	
 	//public
 	
 	//private
 	protected void execute() {
-		if (!(sender instanceof Player)) {
-			sender.sendMessage(MessageType.CONSOLE_NOT_ALLOWED);
-			dispatch(CommandEvent.ERROR, CommandErrorType.CONSOLE_NOT_ALLOWED);
-			return;
-		}
-		if (!permissionsManager.playerHasPermission((Player) sender, PermissionsType.HAT)) {
-			sender.sendMessage(MessageType.NO_PERMISSIONS);
-			dispatch(CommandEvent.ERROR, CommandErrorType.NO_PERMISSIONS);
-			return;
-		}
-		
-		if (args.length == 0) {
+		if (isValid(true, PermissionsType.HAT, new int[]{0}, null)) {
 			unhat((Player) sender);
-		} else {
-			sender.sendMessage(MessageType.INCORRECT_USAGE);
-			sender.getServer().dispatchCommand(sender, "help " + command.getName());
-			dispatch(CommandEvent.ERROR, CommandErrorType.INCORRECT_USAGE);
 		}
 	}
 	private void unhat(Player player) {
+		String lowerName = player.getName().toLowerCase();
 		PlayerInventory inv = player.getInventory();
 		
 		if (inv.getHelmet() != null) {
@@ -67,14 +51,14 @@ public class UnhatCommand extends PluginCommand {
 		
 		sender.sendMessage("No more hat :(");
 		
-		if (glowRegistry.contains(player.getName().toLowerCase())) {
+		glowRegistry.computeIfPresent(lowerName, (k,v) -> {
 			Location loc = player.getLocation().clone();
 			loc.setX(loc.getBlockX());
 			loc.setY(loc.getBlockY() + 1.0d);
 			loc.setZ(loc.getBlockZ());
 			LightHelper.removeLight(loc, true);
-		}
-		
-		glowRegistry.setRegister(player.getName().toLowerCase(), null);
+			
+			return null;
+		});
 	}
 }

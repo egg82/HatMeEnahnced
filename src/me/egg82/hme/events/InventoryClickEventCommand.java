@@ -1,6 +1,5 @@
 package me.egg82.hme.events;
 
-import org.bukkit.event.Event;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.PlayerInventory;
 
@@ -15,8 +14,8 @@ public class InventoryClickEventCommand extends EventCommand {
 	IRegistry glowRegistry = (IRegistry) ServiceLocator.getService(PluginServiceType.GLOW_REGISTRY);
 	
 	//constructor
-	public InventoryClickEventCommand(Event event) {
-		super(event);
+	public InventoryClickEventCommand() {
+		super();
 	}
 	
 	//public
@@ -29,7 +28,6 @@ public class InventoryClickEventCommand extends EventCommand {
 		try {
 			inv = (PlayerInventory) e.getInventory();
 		} catch (Exception ex) {
-			System.out.println(ex.getMessage());
 			return;
 		}
 		

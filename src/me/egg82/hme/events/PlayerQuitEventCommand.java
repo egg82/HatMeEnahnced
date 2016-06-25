@@ -1,6 +1,5 @@
 package me.egg82.hme.events;
 
-import org.bukkit.event.Event;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 import ninja.egg82.patterns.ServiceLocator;
@@ -15,8 +14,8 @@ public class PlayerQuitEventCommand extends EventCommand {
 	IRegistry glowRegistry = (IRegistry) ServiceLocator.getService(PluginServiceType.GLOW_REGISTRY);
 	
 	//constructor
-	public PlayerQuitEventCommand(Event event) {
-		super(event);
+	public PlayerQuitEventCommand() {
+		super();
 	}
 	
 	//public
