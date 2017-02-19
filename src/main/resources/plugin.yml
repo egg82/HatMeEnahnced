@@ -1,6 +1,6 @@
 name: HatMeEnhanced
 main: me.egg82.hme.HatMeEnhanced
-version: 2.0.3
+version: 2.0.4
 commands:
   hat:
     description: Puts the item (or item stack with -a) in your hand on your head. Optionally uses an item ID or type instead. 

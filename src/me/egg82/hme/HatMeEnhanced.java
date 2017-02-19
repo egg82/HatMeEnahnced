@@ -32,6 +32,7 @@ public class HatMeEnhanced extends BasePlugin {
 	private int numCommands = 0;
 	private int numEvents = 0;
 	private int numPermissions = 0;
+	private int numTicks = 0;
 	
 	//constructor
 	public HatMeEnhanced() {
@@ -64,6 +65,7 @@ public class HatMeEnhanced extends BasePlugin {
 		numCommands = ReflectUtil.addCommandsFromPackage(commandHandler, "me.egg82.hme.commands");
 		numEvents = ReflectUtil.addEventsFromPackage(eventListener, "me.egg82.hme.events");
 		numPermissions = ReflectUtil.addPermissionsFromClass(permissionsManager, PermissionsType.class);
+		numTicks = ReflectUtil.addTicksFromPackage(tickHandler, "me.egg82.hme.ticks");
 		
 		Object[] enums = Util.getStaticFields(Material.class);
 		Material[] materials = Arrays.copyOf(enums, enums.length, Material[].class);
@@ -107,7 +109,7 @@ public class HatMeEnhanced extends BasePlugin {
 		sender.sendMessage(ChatColor.YELLOW + "|  _  |/ _` | __| |\\/| |/ _ |  __| '_ \\| '_ \\ / _` | '_ \\ / __/ _ \\/ _` |");
 		sender.sendMessage(ChatColor.YELLOW + "| | | | (_| | |_| |  | |  __| |__| | | | | | | (_| | | | | (_|  __| (_| |");
 		sender.sendMessage(ChatColor.YELLOW + "\\_| |_/\\__,_|\\__\\_|  |_/\\___\\____|_| |_|_| |_|\\__,_|_| |_|\\___\\___|\\__,_|");
-		sender.sendMessage(ChatColor.GREEN + "[Version " + getDescription().getVersion() + "] " + ChatColor.RED + numCommands + " commands " + ChatColor.LIGHT_PURPLE + numEvents + " events " + ChatColor.WHITE + numPermissions + " permissions");
+		sender.sendMessage(ChatColor.GREEN + "[Version " + getDescription().getVersion() + "] " + ChatColor.RED + numCommands + " commands " + ChatColor.LIGHT_PURPLE + numEvents + " events " + ChatColor.WHITE + numPermissions + " permissions " + ChatColor.YELLOW + numTicks + " tick handlers");
 		sender.sendMessage(ChatColor.WHITE + "[HatMeEnhanced] " + ChatColor.GRAY + "Attempting to load compatibility with Bukkit version " + initReg.getRegister(SpigotRegType.GAME_VERSION));
 	}
 	private void disableMessage(ConsoleCommandSender sender) {

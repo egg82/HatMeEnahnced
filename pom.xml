@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>ninja.egg82.plugins</groupId>
   <artifactId>HatMeEnhanced</artifactId>
-  <version>2.0.3</version>
+  <version>2.0.4</version>
   <name>HatMeEnhanced</name>
   <build>
     <sourceDirectory>src</sourceDirectory>
@@ -58,7 +58,7 @@
     </repository>
     <repository>
       <id>Plugin Metrics</id>
-      <url>http://repo.mcstats.org/content/repositories/public</url>
+      <url>http://repo.mcstats.org/content/repositories/public/</url>
     </repository>
     <repository>
       <id>gravity-repo</id>
@@ -66,7 +66,7 @@
     </repository>
     <repository>
       <id>egg82-ninja</id>
-      <url>https://www.egg82.ninja/repo/</url>
+      <url>https://www.egg82.ninja/repo/minecraft/libs/</url>
     </repository>
   </repositories>
   <dependencies>
@@ -78,19 +78,19 @@
   	<dependency>
       <groupId>org.spigotmc</groupId>
       <artifactId>spigot-api</artifactId>
-      <version>1.9.4-R0.1-SNAPSHOT</version>
+      <version>1.11.2-R0.1-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.bukkit</groupId>
       <artifactId>bukkit</artifactId>
-      <version>1.9.4-R0.1-SNAPSHOT</version>
+      <version>1.11.2-R0.1-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>ninja.egg82.lib</groupId>
       <artifactId>spigot-lib</artifactId>
-      <version>1.1.1</version>
+      <version>1.1.2</version>
     </dependency>
      <dependency>
       <groupId>ninja.egg82.lib</groupId>
@@ -105,7 +105,7 @@
     <dependency>
       <groupId>ru.beykerykt</groupId>
       <artifactId>lightapi</artifactId>
-      <version>3.1.0</version>
+      <version>3.2.4</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
