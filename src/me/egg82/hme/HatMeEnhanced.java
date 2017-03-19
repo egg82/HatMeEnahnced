@@ -6,11 +6,11 @@ import java.util.Arrays;
 
 import javax.swing.Timer;
 
+import org.bstats.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.ConsoleCommandSender;
-import org.mcstats.Metrics;
 
 import ninja.egg82.patterns.ServiceLocator;
 import ninja.egg82.plugin.BasePlugin;
@@ -57,9 +57,8 @@ public class HatMeEnhanced extends BasePlugin {
 		
 		try {
 			Metrics m = new Metrics(this);
-			m.start();
 		} catch (Exception ex) {
-			System.out.println(ex.getMessage());
+			
 		}
 		
 		numCommands = ReflectUtil.addCommandsFromPackage(commandHandler, "me.egg82.hme.commands");
