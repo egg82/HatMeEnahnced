@@ -22,11 +22,13 @@ import me.egg82.hme.enums.CommandErrorType;
 import me.egg82.hme.enums.MessageType;
 import me.egg82.hme.enums.PermissionsType;
 import me.egg82.hme.enums.PluginServiceType;
-import me.egg82.hme.util.LightHelper;
+import me.egg82.hme.util.interfaces.ILightHelper;
 
 public class HatCommand extends PluginCommand {
 	//vars
-	IRegistry glowRegistry = (IRegistry) ServiceLocator.getService(PluginServiceType.GLOW_REGISTRY);
+	private IRegistry glowRegistry = (IRegistry) ServiceLocator.getService(PluginServiceType.GLOW_REGISTRY);
+	private IRegistry glowMaterialRegistry = (IRegistry) ServiceLocator.getService(PluginServiceType.GLOW_MATERIAL_REGISTRY);
+	private ILightHelper lightHelper = (ILightHelper) ServiceLocator.getService(PluginServiceType.LIGHT_HELPER);
 	private IPlayerUtil playerUtil = (IPlayerUtil) ((IRegistry) ServiceLocator.getService(SpigotServiceType.REFLECT_REGISTRY)).getRegister(SpigotReflectType.PLAYER);
 	
 	//constructor
@@ -103,7 +105,7 @@ public class HatCommand extends PluginCommand {
 			return false;
 		}
 		
-		String lowerName = player.getName().toLowerCase();
+		String uuid = player.getUniqueId().toString();
 		PlayerInventory inv = player.getInventory();
 		Material type = stack.getType();
 		
@@ -124,30 +126,16 @@ public class HatCommand extends PluginCommand {
 			inv.setHelmet(null);
 		}
 		
-		if (
-				type == Material.TORCH ||
-				type == Material.LAVA ||
-				type == Material.STATIONARY_LAVA ||
-				type == Material.LAVA_BUCKET ||
-				type == Material.FIRE ||
-				type == Material.FIREBALL ||
-				type == Material.GLOWSTONE ||
-				type == Material.GLOWSTONE_DUST ||
-				type == Material.BURNING_FURNACE ||
-				type == Material.REDSTONE_TORCH_ON ||
-				type == Material.JACK_O_LANTERN ||
-				type == Material.REDSTONE_LAMP_ON ||
-				type == Material.BEACON ||
-				type == Material.REDSTONE_BLOCK ||
-				type == Material.SEA_LANTERN
-				) {
-			glowRegistry.setRegister(lowerName, player);
-			
-			Location loc = player.getLocation().clone();
-			loc.setX(loc.getBlockX());
-			loc.setY(loc.getBlockY() + 1.0d);
-			loc.setZ(loc.getBlockZ());
-			LightHelper.addLight(loc, true);
+		if (glowMaterialRegistry.contains(type.toString().toLowerCase())) {
+			glowRegistry.computeIfAbsent(uuid, (k) -> {
+				Location loc = player.getLocation().clone();
+				loc.setX(loc.getBlockX());
+				loc.setY(loc.getBlockY() + 1.0d);
+				loc.setZ(loc.getBlockZ());
+				lightHelper.addLight(loc, true);
+				
+				return player;
+			});
 		}
 		
 		inv.setHelmet(stack);

@@ -4,31 +4,32 @@ import java.util.List;
 
 import org.bukkit.Location;
 
+import me.egg82.hme.util.interfaces.ILightHelper;
 import ru.beykerykt.lightapi.LightAPI;
 import ru.beykerykt.lightapi.chunks.ChunkInfo;
 
-public class LightHelper {
+public class LightAPIHelper implements ILightHelper {
 	//vars
 	
 	//constructor
-	public LightHelper() {
+	public LightAPIHelper() {
 		
 	}
 	
 	//public
-	public static void addLight(Location loc, boolean async) {
+	public void addLight(Location loc, boolean async) {
 		LightAPI.createLight(loc, 15, async);
 		for (ChunkInfo info : LightAPI.collectChunks(loc)) {
 			LightAPI.updateChunk(info);
 		}
 	}
-	public static void removeLight(Location loc, boolean async) {
+	public void removeLight(Location loc, boolean async) {
 		LightAPI.deleteLight(loc, async);
 		for (ChunkInfo info : LightAPI.collectChunks(loc)) {
 			LightAPI.updateChunk(info);
 		}
 	}
-	public static void recreateLight(Location oldLoc, Location newLoc, boolean async) {
+	public void recreateLight(Location oldLoc, Location newLoc, boolean async) {
 		LightAPI.deleteLight(oldLoc, async);
 		LightAPI.createLight(newLoc, 15, async);
 		

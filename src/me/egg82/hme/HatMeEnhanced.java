@@ -11,16 +11,20 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.plugin.PluginManager;
 
 import ninja.egg82.patterns.ServiceLocator;
 import ninja.egg82.plugin.BasePlugin;
 import ninja.egg82.plugin.enums.SpigotRegType;
 import ninja.egg82.plugin.utils.ReflectUtil;
 import ninja.egg82.registry.Registry;
+import ninja.egg82.registry.interfaces.IRegistry;
 import ninja.egg82.utils.Util;
 
 import me.egg82.hme.enums.PermissionsType;
 import me.egg82.hme.enums.PluginServiceType;
+import me.egg82.hme.util.LightAPIHelper;
+import me.egg82.hme.util.nulls.NullLightHelper;
 import net.gravitydevelopment.updater.Updater;
 import net.gravitydevelopment.updater.Updater.UpdateResult;
 import net.gravitydevelopment.updater.Updater.UpdateType;
@@ -49,6 +53,14 @@ public class HatMeEnhanced extends BasePlugin {
 			ServiceLocator.provideService(s, Registry.class);
 		}
 		
+		PluginManager manager = getServer().getPluginManager();
+		
+		if (manager.getPlugin("LightAPI") != null) {
+			ServiceLocator.provideService(PluginServiceType.LIGHT_HELPER, LightAPIHelper.class);
+		} else {
+			ServiceLocator.provideService(PluginServiceType.LIGHT_HELPER, NullLightHelper.class);
+		}
+		
 		updateTimer = new Timer(24 * 60 * 60 * 1000, onUpdateTimer);
 	}
 	@SuppressWarnings("deprecation")
@@ -56,6 +68,7 @@ public class HatMeEnhanced extends BasePlugin {
 		super.onEnable();
 		
 		try {
+			@SuppressWarnings("unused")
 			Metrics m = new Metrics(this);
 		} catch (Exception ex) {
 			
@@ -75,6 +88,8 @@ public class HatMeEnhanced extends BasePlugin {
 			}
 		}
 		
+		addGlowMaterials();
+		
 		enableMessage(Bukkit.getConsoleSender());
 		checkUpdate();
 		updateTimer.setRepeats(true);
@@ -84,6 +99,7 @@ public class HatMeEnhanced extends BasePlugin {
 		commandHandler.clearCommands();
 		eventListener.clearEvents();
 		permissionsManager.clearPermissions();
+		tickHandler.clearTickCommands();
 		
 		disableMessage(Bukkit.getConsoleSender());
 	}
@@ -113,5 +129,26 @@ public class HatMeEnhanced extends BasePlugin {
 	}
 	private void disableMessage(ConsoleCommandSender sender) {
 		sender.sendMessage(ChatColor.GREEN + "--== " + ChatColor.LIGHT_PURPLE + "HatMeEnhanced Disabled" + ChatColor.GREEN + " ==--");
+	}
+	
+	private void addGlowMaterials() {
+		IRegistry glowMaterialRegistry = (IRegistry) ServiceLocator.getService(PluginServiceType.GLOW_MATERIAL_REGISTRY);
+		
+		glowMaterialRegistry.setRegister(Material.TORCH.toString().toLowerCase(), Material.TORCH);
+		glowMaterialRegistry.setRegister(Material.LAVA.toString().toLowerCase(), Material.LAVA);
+		glowMaterialRegistry.setRegister(Material.STATIONARY_LAVA.toString().toLowerCase(), Material.STATIONARY_LAVA);
+		glowMaterialRegistry.setRegister(Material.LAVA_BUCKET.toString().toLowerCase(), Material.LAVA_BUCKET);
+		glowMaterialRegistry.setRegister(Material.FIRE.toString().toLowerCase(), Material.FIRE);
+		glowMaterialRegistry.setRegister(Material.FIREBALL.toString().toLowerCase(), Material.FIREBALL);
+		glowMaterialRegistry.setRegister(Material.GLOWSTONE.toString().toLowerCase(), Material.GLOWSTONE);
+		glowMaterialRegistry.setRegister(Material.GLOWSTONE_DUST.toString().toLowerCase(), Material.GLOWSTONE_DUST);
+		glowMaterialRegistry.setRegister(Material.BURNING_FURNACE.toString().toLowerCase(), Material.BURNING_FURNACE);
+		glowMaterialRegistry.setRegister(Material.GLOWING_REDSTONE_ORE.toString().toLowerCase(), Material.GLOWING_REDSTONE_ORE);
+		glowMaterialRegistry.setRegister(Material.REDSTONE_TORCH_ON.toString().toLowerCase(), Material.REDSTONE_TORCH_ON);
+		glowMaterialRegistry.setRegister(Material.JACK_O_LANTERN.toString().toLowerCase(), Material.JACK_O_LANTERN);
+		glowMaterialRegistry.setRegister(Material.REDSTONE_LAMP_ON.toString().toLowerCase(), Material.REDSTONE_LAMP_ON);
+		glowMaterialRegistry.setRegister(Material.REDSTONE_BLOCK.toString().toLowerCase(), Material.REDSTONE_BLOCK);
+		glowMaterialRegistry.setRegister(Material.BEACON.toString().toLowerCase(), Material.BEACON);
+		glowMaterialRegistry.setRegister(Material.SEA_LANTERN.toString().toLowerCase(), Material.SEA_LANTERN);
 	}
 }

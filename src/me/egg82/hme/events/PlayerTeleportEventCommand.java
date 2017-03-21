@@ -4,14 +4,15 @@ import org.bukkit.Location;
 import org.bukkit.event.player.PlayerTeleportEvent;
 
 import me.egg82.hme.enums.PluginServiceType;
-import me.egg82.hme.util.LightHelper;
+import me.egg82.hme.util.interfaces.ILightHelper;
 import ninja.egg82.patterns.ServiceLocator;
 import ninja.egg82.plugin.commands.EventCommand;
 import ninja.egg82.registry.interfaces.IRegistry;
 
 public class PlayerTeleportEventCommand extends EventCommand {
 	//vars
-	IRegistry glowRegistry = (IRegistry) ServiceLocator.getService(PluginServiceType.GLOW_REGISTRY);
+	private IRegistry glowRegistry = (IRegistry) ServiceLocator.getService(PluginServiceType.GLOW_REGISTRY);
+	private ILightHelper lightHelper = (ILightHelper) ServiceLocator.getService(PluginServiceType.LIGHT_HELPER);
 	
 	//constructor
 	public PlayerTeleportEventCommand() {
@@ -25,6 +26,10 @@ public class PlayerTeleportEventCommand extends EventCommand {
 		PlayerTeleportEvent e = (PlayerTeleportEvent) event;
 		
 		if (e.isCancelled()) {
+			return;
+		}
+		
+		if (!glowRegistry.contains(e.getPlayer().getUniqueId().toString())) {
 			return;
 		}
 		
@@ -42,8 +47,6 @@ public class PlayerTeleportEventCommand extends EventCommand {
 			return;
 		}
 		
-		if (glowRegistry.contains(e.getPlayer().getName().toLowerCase())) {
-			LightHelper.recreateLight(from, to, true);
-		}
+		lightHelper.recreateLight(from, to, true);
 	}
 }

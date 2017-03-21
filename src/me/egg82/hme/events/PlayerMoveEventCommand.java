@@ -8,11 +8,12 @@ import ninja.egg82.plugin.commands.EventCommand;
 import ninja.egg82.registry.interfaces.IRegistry;
 
 import me.egg82.hme.enums.PluginServiceType;
-import me.egg82.hme.util.LightHelper;
+import me.egg82.hme.util.interfaces.ILightHelper;
 
 public class PlayerMoveEventCommand extends EventCommand {
 	//vars
-	IRegistry glowRegistry = (IRegistry) ServiceLocator.getService(PluginServiceType.GLOW_REGISTRY);
+	private IRegistry glowRegistry = (IRegistry) ServiceLocator.getService(PluginServiceType.GLOW_REGISTRY);
+	private ILightHelper lightHelper = (ILightHelper) ServiceLocator.getService(PluginServiceType.LIGHT_HELPER);
 	
 	//constructor
 	public PlayerMoveEventCommand() {
@@ -26,6 +27,10 @@ public class PlayerMoveEventCommand extends EventCommand {
 		PlayerMoveEvent e = (PlayerMoveEvent) event;
 		
 		if (e.isCancelled()) {
+			return;
+		}
+		
+		if (!glowRegistry.contains(e.getPlayer().getUniqueId().toString())) {
 			return;
 		}
 		
@@ -43,8 +48,6 @@ public class PlayerMoveEventCommand extends EventCommand {
 			return;
 		}
 		
-		if (glowRegistry.contains(e.getPlayer().getName().toLowerCase())) {
-			LightHelper.recreateLight(from, to, true);
-		}
+		lightHelper.recreateLight(from, to, true);
 	}
 }

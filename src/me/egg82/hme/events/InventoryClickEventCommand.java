@@ -11,7 +11,7 @@ import me.egg82.hme.enums.PluginServiceType;
 
 public class InventoryClickEventCommand extends EventCommand {
 	//vars
-	IRegistry glowRegistry = (IRegistry) ServiceLocator.getService(PluginServiceType.GLOW_REGISTRY);
+	private IRegistry glowRegistry = (IRegistry) ServiceLocator.getService(PluginServiceType.GLOW_REGISTRY);
 	
 	//constructor
 	public InventoryClickEventCommand() {
@@ -25,8 +25,12 @@ public class InventoryClickEventCommand extends EventCommand {
 		InventoryClickEvent e = (InventoryClickEvent) event;
 		PlayerInventory inv = null;
 		
+		if (e.isCancelled()) {
+			return;
+		}
+		
 		try {
-			inv = (PlayerInventory) e.getInventory();
+			inv = (PlayerInventory) e.getClickedInventory();
 		} catch (Exception ex) {
 			return;
 		}
@@ -35,8 +39,10 @@ public class InventoryClickEventCommand extends EventCommand {
 			return;
 		}
 		
-		if (inv.getHelmet() != null & glowRegistry.contains(e.getWhoClicked().getName().toLowerCase())) {
-			e.setCancelled(true);
+		if (inv.getHelmet() != null) {
+			glowRegistry.computeIfPresent(e.getWhoClicked().getUniqueId().toString(), (k, v) -> {
+				return null;
+			});
 		}
 	}
 }

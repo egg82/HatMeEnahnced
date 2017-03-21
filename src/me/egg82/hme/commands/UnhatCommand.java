@@ -14,11 +14,12 @@ import me.egg82.hme.enums.CommandErrorType;
 import me.egg82.hme.enums.MessageType;
 import me.egg82.hme.enums.PermissionsType;
 import me.egg82.hme.enums.PluginServiceType;
-import me.egg82.hme.util.LightHelper;
+import me.egg82.hme.util.interfaces.ILightHelper;
 
 public class UnhatCommand extends PluginCommand {
 	//vars
-	IRegistry glowRegistry = (IRegistry) ServiceLocator.getService(PluginServiceType.GLOW_REGISTRY);
+	private IRegistry glowRegistry = (IRegistry) ServiceLocator.getService(PluginServiceType.GLOW_REGISTRY);
+	private ILightHelper lightHelper = (ILightHelper) ServiceLocator.getService(PluginServiceType.LIGHT_HELPER);
 	
 	//constructor
 	public UnhatCommand() {
@@ -34,7 +35,7 @@ public class UnhatCommand extends PluginCommand {
 		}
 	}
 	private void unhat(Player player) {
-		String lowerName = player.getName().toLowerCase();
+		String uuid = player.getUniqueId().toString();
 		PlayerInventory inv = player.getInventory();
 		
 		if (inv.getHelmet() != null) {
@@ -51,12 +52,12 @@ public class UnhatCommand extends PluginCommand {
 		
 		sender.sendMessage("No more hat :(");
 		
-		glowRegistry.computeIfPresent(lowerName, (k,v) -> {
+		glowRegistry.computeIfPresent(uuid, (k,v) -> {
 			Location loc = player.getLocation().clone();
 			loc.setX(loc.getBlockX());
 			loc.setY(loc.getBlockY() + 1.0d);
 			loc.setZ(loc.getBlockZ());
-			LightHelper.removeLight(loc, true);
+			lightHelper.removeLight(loc, true);
 			
 			return null;
 		});
