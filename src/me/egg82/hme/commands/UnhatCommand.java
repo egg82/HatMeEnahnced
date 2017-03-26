@@ -5,21 +5,21 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
-import ninja.egg82.events.patterns.command.CommandEvent;
+import ninja.egg82.events.CommandEvent;
+import ninja.egg82.patterns.IRegistry;
 import ninja.egg82.patterns.ServiceLocator;
 import ninja.egg82.plugin.commands.PluginCommand;
-import ninja.egg82.registry.interfaces.IRegistry;
 
 import me.egg82.hme.enums.CommandErrorType;
 import me.egg82.hme.enums.MessageType;
 import me.egg82.hme.enums.PermissionsType;
-import me.egg82.hme.enums.PluginServiceType;
-import me.egg82.hme.util.interfaces.ILightHelper;
+import me.egg82.hme.services.GlowRegistry;
+import me.egg82.hme.util.ILightHelper;
 
 public class UnhatCommand extends PluginCommand {
 	//vars
-	private IRegistry glowRegistry = (IRegistry) ServiceLocator.getService(PluginServiceType.GLOW_REGISTRY);
-	private ILightHelper lightHelper = (ILightHelper) ServiceLocator.getService(PluginServiceType.LIGHT_HELPER);
+	private IRegistry glowRegistry = (IRegistry) ServiceLocator.getService(GlowRegistry.class);
+	private ILightHelper lightHelper = (ILightHelper) ServiceLocator.getService(ILightHelper.class);
 	
 	//constructor
 	public UnhatCommand() {
@@ -29,7 +29,7 @@ public class UnhatCommand extends PluginCommand {
 	//public
 	
 	//private
-	protected void execute() {
+	protected void onExecute(long elapsedMilliseoncds) {
 		if (isValid(true, PermissionsType.HAT, new int[]{0}, null)) {
 			unhat((Player) sender);
 		}
@@ -52,14 +52,14 @@ public class UnhatCommand extends PluginCommand {
 		
 		sender.sendMessage("No more hat :(");
 		
-		glowRegistry.computeIfPresent(uuid, (k,v) -> {
+		if (glowRegistry.hasRegister(uuid)) {
 			Location loc = player.getLocation().clone();
 			loc.setX(loc.getBlockX());
 			loc.setY(loc.getBlockY() + 1.0d);
 			loc.setZ(loc.getBlockZ());
 			lightHelper.removeLight(loc, true);
 			
-			return null;
-		});
+			glowRegistry.setRegister(uuid, Player.class, null);
+		}
 	}
 }

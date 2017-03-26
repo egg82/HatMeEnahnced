@@ -1,4 +1,4 @@
-package me.egg82.hme.util.interfaces;
+package me.egg82.hme.util;
 
 import org.bukkit.Location;
 

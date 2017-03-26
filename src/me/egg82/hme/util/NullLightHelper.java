@@ -1,8 +1,6 @@
-package me.egg82.hme.util.nulls;
+package me.egg82.hme.util;
 
 import org.bukkit.Location;
-
-import me.egg82.hme.util.interfaces.ILightHelper;
 
 public class NullLightHelper implements ILightHelper {
 	//vars

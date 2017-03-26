@@ -8,28 +8,27 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
-import ninja.egg82.events.patterns.command.CommandEvent;
+import ninja.egg82.events.CommandEvent;
+import ninja.egg82.patterns.IRegistry;
 import ninja.egg82.patterns.ServiceLocator;
 import ninja.egg82.plugin.commands.PluginCommand;
 import ninja.egg82.plugin.enums.SpigotCommandErrorType;
 import ninja.egg82.plugin.enums.SpigotMessageType;
-import ninja.egg82.plugin.enums.SpigotReflectType;
-import ninja.egg82.plugin.enums.SpigotServiceType;
-import ninja.egg82.plugin.reflection.player.interfaces.IPlayerUtil;
-import ninja.egg82.registry.interfaces.IRegistry;
-import ninja.egg82.utils.Util;
+import ninja.egg82.plugin.reflection.player.IPlayerUtil;
+import ninja.egg82.utils.ReflectUtil;
 import me.egg82.hme.enums.CommandErrorType;
 import me.egg82.hme.enums.MessageType;
 import me.egg82.hme.enums.PermissionsType;
-import me.egg82.hme.enums.PluginServiceType;
-import me.egg82.hme.util.interfaces.ILightHelper;
+import me.egg82.hme.services.GlowRegistry;
+import me.egg82.hme.services.MaterialRegistry;
+import me.egg82.hme.util.ILightHelper;
 
 public class HatCommand extends PluginCommand {
 	//vars
-	private IRegistry glowRegistry = (IRegistry) ServiceLocator.getService(PluginServiceType.GLOW_REGISTRY);
-	private IRegistry glowMaterialRegistry = (IRegistry) ServiceLocator.getService(PluginServiceType.GLOW_MATERIAL_REGISTRY);
-	private ILightHelper lightHelper = (ILightHelper) ServiceLocator.getService(PluginServiceType.LIGHT_HELPER);
-	private IPlayerUtil playerUtil = (IPlayerUtil) ((IRegistry) ServiceLocator.getService(SpigotServiceType.REFLECT_REGISTRY)).getRegister(SpigotReflectType.PLAYER);
+	private IRegistry glowRegistry = (IRegistry) ServiceLocator.getService(GlowRegistry.class);
+	private IRegistry materialRegistry = (IRegistry) ServiceLocator.getService(MaterialRegistry.class);
+	private ILightHelper lightHelper = (ILightHelper) ServiceLocator.getService(ILightHelper.class);
+	private IPlayerUtil playerUtil = (IPlayerUtil) ServiceLocator.getService(IPlayerUtil.class);
 	
 	//constructor
 	public HatCommand() {
@@ -40,7 +39,7 @@ public class HatCommand extends PluginCommand {
 	
 	//private
 	@SuppressWarnings("deprecation")
-	protected void execute() {
+	protected void onExecute(long elapsedMilliseconds) {
 		if (isValid(true, PermissionsType.HAT, new int[]{0,1}, null)) {
 			if (args.length == 0) {
 				ItemStack hand = playerUtil.getItemInMainHand((Player) sender);
@@ -70,7 +69,7 @@ public class HatCommand extends PluginCommand {
 						return;
 					}
 					
-					Object[] enums = Util.getStaticFields(Material.class);
+					Object[] enums = ReflectUtil.getStaticFields(Material.class);
 					Material[] materials = Arrays.copyOf(enums, enums.length, Material[].class);
 					boolean found = false;
 					for (Material m : materials) {
@@ -126,16 +125,16 @@ public class HatCommand extends PluginCommand {
 			inv.setHelmet(null);
 		}
 		
-		if (glowMaterialRegistry.contains(type.toString().toLowerCase())) {
-			glowRegistry.computeIfAbsent(uuid, (k) -> {
+		if (materialRegistry.hasRegister(type.toString().toLowerCase())) {
+			if (!glowRegistry.hasRegister(uuid)) {
 				Location loc = player.getLocation().clone();
 				loc.setX(loc.getBlockX());
 				loc.setY(loc.getBlockY() + 1.0d);
 				loc.setZ(loc.getBlockZ());
 				lightHelper.addLight(loc, true);
 				
-				return player;
-			});
+				glowRegistry.setRegister(uuid, Player.class, player);
+			}
 		}
 		
 		inv.setHelmet(stack);

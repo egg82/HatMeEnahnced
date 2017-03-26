@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.bukkit.Location;
 
-import me.egg82.hme.util.interfaces.ILightHelper;
 import ru.beykerykt.lightapi.LightAPI;
 import ru.beykerykt.lightapi.chunks.ChunkInfo;
 

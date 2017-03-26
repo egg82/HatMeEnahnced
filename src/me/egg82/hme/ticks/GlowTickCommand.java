@@ -5,17 +5,18 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
-import me.egg82.hme.enums.PluginServiceType;
-import me.egg82.hme.util.interfaces.ILightHelper;
+import me.egg82.hme.services.GlowRegistry;
+import me.egg82.hme.services.MaterialRegistry;
+import me.egg82.hme.util.ILightHelper;
+import ninja.egg82.patterns.IRegistry;
 import ninja.egg82.patterns.ServiceLocator;
 import ninja.egg82.plugin.commands.TickCommand;
-import ninja.egg82.registry.interfaces.IRegistry;
 
 public class GlowTickCommand extends TickCommand {
 	//vars
-	private IRegistry reg = (IRegistry) ServiceLocator.getService(PluginServiceType.GLOW_REGISTRY);
-	private IRegistry glowMaterialRegistry = (IRegistry) ServiceLocator.getService(PluginServiceType.GLOW_MATERIAL_REGISTRY);
-	private ILightHelper lightHelper = (ILightHelper) ServiceLocator.getService(PluginServiceType.LIGHT_HELPER);
+	private IRegistry glowRegistry = (IRegistry) ServiceLocator.getService(GlowRegistry.class);
+	private IRegistry glowMaterialRegistry = (IRegistry) ServiceLocator.getService(MaterialRegistry.class);
+	private ILightHelper lightHelper = (ILightHelper) ServiceLocator.getService(ILightHelper.class);
 	
 	//constructor
 	public GlowTickCommand() {
@@ -26,10 +27,10 @@ public class GlowTickCommand extends TickCommand {
 	//public
 	
 	//private
-	protected void execute() {
-		String[] names = reg.registryNames();
+	protected void onExecute(long elapsedMilliseconds) {
+		String[] names = glowRegistry.getRegistryNames();
 		for (String name : names) {
-			e(name, (Player) reg.getRegister(name));
+			e(name, (Player) glowRegistry.getRegister(name));
 		}
 	}
 	private void e(String uuid, Player player) {
@@ -45,14 +46,14 @@ public class GlowTickCommand extends TickCommand {
 		
 		ItemStack helmet = inv.getHelmet();
 		
-		if (helmet == null || !glowMaterialRegistry.contains(helmet.getType().toString().toLowerCase())) {
+		if (helmet == null || !glowMaterialRegistry.hasRegister(helmet.getType().toString().toLowerCase())) {
 			Location loc = player.getLocation().clone();
 			loc.setX(loc.getBlockX());
 			loc.setY(loc.getBlockY() + 1.0d);
 			loc.setZ(loc.getBlockZ());
 			lightHelper.removeLight(loc, true);
 			
-			reg.setRegister(uuid, null);
+			glowRegistry.setRegister(uuid, Player.class, null);
 		}
 	}
 }
