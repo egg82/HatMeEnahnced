@@ -7,5 +7,5 @@ commands:
     description: Puts the item (or item stack with -a) in your hand on your head. Optionally uses an item ID or type instead. 
     usage: /hat [-a,itemID]
   unhat:
-    description: Puts the item in your head in your inventory.
-    usage: /unhat
+    description: Puts the item on your (or the player if specified) head back in the inventory.
+    usage: /unhat [player]

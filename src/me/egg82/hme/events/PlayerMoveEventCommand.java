@@ -1,6 +1,7 @@
 package me.egg82.hme.events;
 
 import org.bukkit.Location;
+import org.bukkit.event.Event;
 import org.bukkit.event.player.PlayerMoveEvent;
 
 import ninja.egg82.patterns.IRegistry;
@@ -15,8 +16,8 @@ public class PlayerMoveEventCommand extends EventCommand {
 	private ILightHelper lightHelper = (ILightHelper) ServiceLocator.getService(ILightHelper.class);
 	
 	//constructor
-	public PlayerMoveEventCommand() {
-		super();
+	public PlayerMoveEventCommand(Event e) {
+		super(e);
 	}
 	
 	//public
@@ -34,14 +35,14 @@ public class PlayerMoveEventCommand extends EventCommand {
 		}
 		
 		Location from = e.getFrom().clone();
-		from.setX(from.getBlockX());
+		from.setX(from.getBlockX() + 0.5d);
 		from.setY(from.getBlockY() + 1.0d);
-		from.setZ(from.getBlockZ());
+		from.setZ(from.getBlockZ() + 0.5d);
 		
 		Location to = e.getTo().clone();
-		to.setX(to.getBlockX());
+		to.setX(to.getBlockX() + 0.5d);
 		to.setY(to.getBlockY() + 1.0d);
-		to.setZ(to.getBlockZ());
+		to.setZ(to.getBlockZ() + 0.5d);
 		
 		if (from.getX() == to.getX() && from.getY() == to.getY() && from.getZ() == to.getZ()) {
 			return;

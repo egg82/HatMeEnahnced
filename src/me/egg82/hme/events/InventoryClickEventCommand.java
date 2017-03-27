@@ -1,10 +1,15 @@
 package me.egg82.hme.events;
 
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
 import me.egg82.hme.services.GlowRegistry;
+import me.egg82.hme.services.MaterialRegistry;
+import me.egg82.hme.util.ILightHelper;
 import ninja.egg82.patterns.IRegistry;
 import ninja.egg82.patterns.ServiceLocator;
 import ninja.egg82.plugin.commands.EventCommand;
@@ -12,10 +17,12 @@ import ninja.egg82.plugin.commands.EventCommand;
 public class InventoryClickEventCommand extends EventCommand {
 	//vars
 	private IRegistry glowRegistry = (IRegistry) ServiceLocator.getService(GlowRegistry.class);
+	private IRegistry materialRegistry = (IRegistry) ServiceLocator.getService(MaterialRegistry.class);
+	private ILightHelper lightHelper = (ILightHelper) ServiceLocator.getService(ILightHelper.class);
 	
 	//constructor
-	public InventoryClickEventCommand() {
-		super();
+	public InventoryClickEventCommand(Event e) {
+		super(e);
 	}
 	
 	//public
@@ -39,8 +46,30 @@ public class InventoryClickEventCommand extends EventCommand {
 			return;
 		}
 		
-		if (inv.getHelmet() != null) {
-			glowRegistry.setRegister(e.getWhoClicked().getUniqueId().toString(), Player.class, null);
+		ItemStack helmet = inv.getHelmet();
+		Player player = (Player) e.getWhoClicked();
+		String uuid = player.getUniqueId().toString();
+		
+		if (helmet != null && materialRegistry.hasRegister(helmet.getType().toString().toLowerCase())) {
+			if (!glowRegistry.hasRegister(uuid)) {
+				Location loc = player.getLocation().clone();
+				loc.setX(loc.getBlockX() + 0.5d);
+				loc.setY(loc.getBlockY() + 1.0d);
+				loc.setZ(loc.getBlockZ() + 0.5d);
+				lightHelper.addLight(loc, false);
+				
+				glowRegistry.setRegister(uuid, Player.class, player);
+			}
+		} else {
+			if (glowRegistry.hasRegister(uuid)) {
+				Location loc = player.getLocation().clone();
+				loc.setX(loc.getBlockX() + 0.5d);
+				loc.setY(loc.getBlockY() + 1.0d);
+				loc.setZ(loc.getBlockZ() + 0.5d);
+				lightHelper.removeLight(loc, false);
+				
+				glowRegistry.setRegister(uuid, Player.class, null);
+			}
 		}
 	}
 }

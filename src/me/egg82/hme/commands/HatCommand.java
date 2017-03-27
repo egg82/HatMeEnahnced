@@ -4,6 +4,7 @@ import java.util.Arrays;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -15,6 +16,7 @@ import ninja.egg82.plugin.commands.PluginCommand;
 import ninja.egg82.plugin.enums.SpigotCommandErrorType;
 import ninja.egg82.plugin.enums.SpigotMessageType;
 import ninja.egg82.plugin.reflection.player.IPlayerUtil;
+import ninja.egg82.plugin.utils.CommandUtil;
 import ninja.egg82.utils.ReflectUtil;
 import me.egg82.hme.enums.CommandErrorType;
 import me.egg82.hme.enums.MessageType;
@@ -31,8 +33,8 @@ public class HatCommand extends PluginCommand {
 	private IPlayerUtil playerUtil = (IPlayerUtil) ServiceLocator.getService(IPlayerUtil.class);
 	
 	//constructor
-	public HatCommand() {
-		super();
+	public HatCommand(CommandSender sender, org.bukkit.command.Command command, String label, String[] args) {
+		super(sender, command, label, args);
 	}
 	
 	//public
@@ -40,55 +42,70 @@ public class HatCommand extends PluginCommand {
 	//private
 	@SuppressWarnings("deprecation")
 	protected void onExecute(long elapsedMilliseconds) {
-		if (isValid(true, PermissionsType.HAT, new int[]{0,1}, null)) {
-			if (args.length == 0) {
-				ItemStack hand = playerUtil.getItemInMainHand((Player) sender);
-				ItemStack hand2 = new ItemStack(hand);
-				hand2.setAmount(1);
-				if (hat((Player) sender, hand2)) {
-					if (hand.getAmount() == 1) {
-						playerUtil.setItemInMainHand((Player) sender, null);
-					} else {
-						hand.setAmount(hand.getAmount() - 1);
+		if (!CommandUtil.isPlayer(sender)) {
+			sender.sendMessage(SpigotMessageType.CONSOLE_NOT_ALLOWED);
+			dispatch(CommandEvent.ERROR, SpigotCommandErrorType.CONSOLE_NOT_ALLOWED);
+			return;
+		}
+		if (!CommandUtil.hasPermission(sender, PermissionsType.HAT)) {
+			sender.sendMessage(SpigotMessageType.NO_PERMISSIONS);
+			dispatch(CommandEvent.ERROR, SpigotCommandErrorType.NO_PERMISSIONS);
+			return;
+		}
+		if (!CommandUtil.isArrayOfAllowedLength(args, 0, 1)) {
+			sender.sendMessage(SpigotMessageType.INCORRECT_USAGE);
+			sender.getServer().dispatchCommand(sender, "help " + command.getName());
+			dispatch(CommandEvent.ERROR, SpigotCommandErrorType.INCORRECT_USAGE);
+			return;
+		}
+		
+		if (args.length == 0) {
+			ItemStack hand = playerUtil.getItemInMainHand((Player) sender);
+			ItemStack hand2 = new ItemStack(hand);
+			hand2.setAmount(1);
+			if (hat((Player) sender, hand2)) {
+				if (hand.getAmount() == 1) {
+					playerUtil.setItemInMainHand((Player) sender, null);
+				} else {
+					hand.setAmount(hand.getAmount() - 1);
+				}
+			}
+		} else if (args.length == 1) {
+			if (args[0].equalsIgnoreCase("-a")) {
+				if (!CommandUtil.hasPermission((Player) sender, PermissionsType.STACK)) {
+					sender.sendMessage(SpigotMessageType.NO_PERMISSIONS);
+					dispatch(CommandEvent.ERROR, SpigotCommandErrorType.NO_PERMISSIONS);
+					return;
+				}
+				if (hat((Player) sender, ((Player) sender).getInventory().getItemInMainHand())) {
+					((Player) sender).getInventory().setItemInMainHand(null);
+				}
+			} else {
+				if (!CommandUtil.hasPermission((Player) sender, PermissionsType.GIVE)) {
+					sender.sendMessage(SpigotMessageType.NO_PERMISSIONS);
+					dispatch(CommandEvent.ERROR, SpigotCommandErrorType.NO_PERMISSIONS);
+					return;
+				}
+				
+				Object[] enums = ReflectUtil.getStaticFields(Material.class);
+				Material[] materials = Arrays.copyOf(enums, enums.length, Material[].class);
+				boolean found = false;
+				for (Material m : materials) {
+					if (m.toString().equalsIgnoreCase(args[0])) {
+						hat((Player) sender, new ItemStack(m, 1));
+						found = true;
+						break;
 					}
 				}
-			} else if (args.length == 1) {
-				if (args[0].equalsIgnoreCase("-a")) {
-					if (!permissionsManager.playerHasPermission((Player) sender, PermissionsType.STACK)) {
-						sender.sendMessage(SpigotMessageType.NO_PERMISSIONS);
-						dispatch(CommandEvent.ERROR, SpigotCommandErrorType.NO_PERMISSIONS);
+				
+				if (!found) {
+					try {
+						hat((Player) sender, new ItemStack(Material.getMaterial(Integer.parseInt(args[0])), 1));
+					} catch (Exception ex) {
+						sender.sendMessage(SpigotMessageType.INCORRECT_USAGE);
+						sender.getServer().dispatchCommand(sender, "help " + command.getName());
+						dispatch(CommandEvent.ERROR, SpigotCommandErrorType.INCORRECT_USAGE);
 						return;
-					}
-					if (hat((Player) sender, ((Player) sender).getInventory().getItemInMainHand())) {
-						((Player) sender).getInventory().setItemInMainHand(null);
-					}
-				} else {
-					if (!permissionsManager.playerHasPermission((Player) sender, PermissionsType.GIVE)) {
-						sender.sendMessage(SpigotMessageType.NO_PERMISSIONS);
-						dispatch(CommandEvent.ERROR, SpigotCommandErrorType.NO_PERMISSIONS);
-						return;
-					}
-					
-					Object[] enums = ReflectUtil.getStaticFields(Material.class);
-					Material[] materials = Arrays.copyOf(enums, enums.length, Material[].class);
-					boolean found = false;
-					for (Material m : materials) {
-						if (m.toString().equalsIgnoreCase(args[0])) {
-							hat((Player) sender, new ItemStack(m, 1));
-							found = true;
-							break;
-						}
-					}
-					
-					if (!found) {
-						try {
-							hat((Player) sender, new ItemStack(Material.getMaterial(Integer.parseInt(args[0])), 1));
-						} catch (Exception ex) {
-							sender.sendMessage(SpigotMessageType.INCORRECT_USAGE);
-							sender.getServer().dispatchCommand(sender, "help " + command.getName());
-							dispatch(CommandEvent.ERROR, SpigotCommandErrorType.INCORRECT_USAGE);
-							return;
-						}
 					}
 				}
 			}
@@ -98,7 +115,7 @@ public class HatCommand extends PluginCommand {
 	}
 	@SuppressWarnings("deprecation")
 	private boolean hat(Player player, ItemStack stack) {
-		if (!permissionsManager.playerHasPermission((Player) sender, PermissionsType.HAT + "." + stack.getTypeId()) && !permissionsManager.playerHasPermission((Player) sender, PermissionsType.HAT + "." + stack.getType().toString().toLowerCase()) && !permissionsManager.playerHasPermission(player, PermissionsType.ANY)) {
+		if (!CommandUtil.hasPermission((Player) sender, PermissionsType.HAT + "." + stack.getTypeId()) && !CommandUtil.hasPermission((Player) sender, PermissionsType.HAT + "." + stack.getType().toString().toLowerCase()) && !CommandUtil.hasPermission(player, PermissionsType.ANY)) {
 			sender.sendMessage(SpigotMessageType.NO_PERMISSIONS);
 			dispatch(CommandEvent.ERROR, SpigotCommandErrorType.NO_PERMISSIONS);
 			return false;
@@ -128,10 +145,10 @@ public class HatCommand extends PluginCommand {
 		if (materialRegistry.hasRegister(type.toString().toLowerCase())) {
 			if (!glowRegistry.hasRegister(uuid)) {
 				Location loc = player.getLocation().clone();
-				loc.setX(loc.getBlockX());
+				loc.setX(loc.getBlockX() + 0.5d);
 				loc.setY(loc.getBlockY() + 1.0d);
-				loc.setZ(loc.getBlockZ());
-				lightHelper.addLight(loc, true);
+				loc.setZ(loc.getBlockZ() + 0.5d);
+				lightHelper.addLight(loc, false);
 				
 				glowRegistry.setRegister(uuid, Player.class, player);
 			}

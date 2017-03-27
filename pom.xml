@@ -31,6 +31,18 @@
               <goal>shade</goal>
             </goals>
             <configuration>
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                    <exclude>**/*.html</exclude>
+                    <exclude>**/*.txt</exclude>
+                  </excludes>
+                </filter>
+              </filters>
               <minimizeJar>false</minimizeJar>
               <relocations>
                 <relocation>
@@ -50,8 +62,12 @@
                   <shadedPattern>me.egg82.hme.lib.org.apache</shadedPattern>
                 </relocation>
                 <relocation>
-                  <pattern>gnu.trove</pattern>
-                  <shadedPattern>me.egg82.hme.lib.gnu.trove</shadedPattern>
+                  <pattern>org.eclipse</pattern>
+                  <shadedPattern>me.egg82.hme.lib.org.eclipse</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>net.jcip</pattern>
+                  <shadedPattern>me.egg82.hme.lib.net.jcip</shadedPattern>
                 </relocation>
               </relocations>
             </configuration>
@@ -123,9 +139,9 @@
       <version>3.5</version>
     </dependency>
     <dependency>
-      <groupId>net.sf.trove4j</groupId>
-      <artifactId>trove4j</artifactId>
-      <version>3.0.3</version>
+      <groupId>org.eclipse.collections</groupId>
+      <artifactId>eclipse-collections</artifactId>
+      <version>8.1.0</version>
     </dependency>
   </dependencies>
   <url>https://www.egg82.ninja</url>

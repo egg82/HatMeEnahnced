@@ -48,10 +48,10 @@ public class GlowTickCommand extends TickCommand {
 		
 		if (helmet == null || !glowMaterialRegistry.hasRegister(helmet.getType().toString().toLowerCase())) {
 			Location loc = player.getLocation().clone();
-			loc.setX(loc.getBlockX());
+			loc.setX(loc.getBlockX() + 0.5d);
 			loc.setY(loc.getBlockY() + 1.0d);
-			loc.setZ(loc.getBlockZ());
-			lightHelper.removeLight(loc, true);
+			loc.setZ(loc.getBlockZ() + 0.5d);
+			lightHelper.removeLight(loc, false);
 			
 			glowRegistry.setRegister(uuid, Player.class, null);
 		}

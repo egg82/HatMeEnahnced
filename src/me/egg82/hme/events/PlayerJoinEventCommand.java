@@ -2,6 +2,7 @@ package me.egg82.hme.events;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -20,8 +21,8 @@ public class PlayerJoinEventCommand extends EventCommand {
 	private ILightHelper lightHelper = (ILightHelper) ServiceLocator.getService(ILightHelper.class);
 	
 	//constructor
-	public PlayerJoinEventCommand() {
-		
+	public PlayerJoinEventCommand(Event e) {
+		super(e);
 	}
 	
 	//public
@@ -48,10 +49,10 @@ public class PlayerJoinEventCommand extends EventCommand {
 			
 			if (!glowRegistry.hasRegister(uuid)) {
 				Location loc = player.getLocation().clone();
-				loc.setX(loc.getBlockX());
+				loc.setX(loc.getBlockX() + 0.5d);
 				loc.setY(loc.getBlockY() + 1.0d);
-				loc.setZ(loc.getBlockZ());
-				lightHelper.addLight(loc, true);
+				loc.setZ(loc.getBlockZ() + 0.5d);
+				lightHelper.addLight(loc, false);
 				
 				glowRegistry.setRegister(uuid, Player.class, player);
 			}

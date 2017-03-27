@@ -2,6 +2,7 @@ package me.egg82.hme.events;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 import ninja.egg82.patterns.IRegistry;
@@ -16,8 +17,8 @@ public class PlayerQuitEventCommand extends EventCommand {
 	private ILightHelper lightHelper = (ILightHelper) ServiceLocator.getService(ILightHelper.class);
 	
 	//constructor
-	public PlayerQuitEventCommand() {
-		super();
+	public PlayerQuitEventCommand(Event e) {
+		super(e);
 	}
 	
 	//public
@@ -30,11 +31,11 @@ public class PlayerQuitEventCommand extends EventCommand {
 		
 		if (glowRegistry.hasRegister(uuid)) {
 			Location loc = e.getPlayer().getLocation().clone();
-			loc.setX(loc.getBlockX());
+			loc.setX(loc.getBlockX() + 0.5d);
 			loc.setY(loc.getBlockY() + 1.0d);
-			loc.setZ(loc.getBlockZ());
+			loc.setZ(loc.getBlockZ() + 0.5d);
 			
-			lightHelper.removeLight(loc, true);
+			lightHelper.removeLight(loc, false);
 			glowRegistry.setRegister(uuid, Player.class, null);
 		}
 	}

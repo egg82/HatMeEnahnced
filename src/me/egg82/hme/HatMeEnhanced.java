@@ -15,7 +15,10 @@ import org.bukkit.plugin.PluginManager;
 
 import ninja.egg82.patterns.ServiceLocator;
 import ninja.egg82.plugin.BasePlugin;
+import ninja.egg82.plugin.handlers.PermissionsManager;
 import ninja.egg82.plugin.utils.SpigotReflectUtil;
+import ninja.egg82.plugin.utils.VersionUtil;
+import ninja.egg82.startup.InitRegistry;
 import ninja.egg82.utils.ReflectUtil;
 import me.egg82.hme.enums.PermissionsType;
 import me.egg82.hme.util.LightAPIHelper;
@@ -67,10 +70,12 @@ public class HatMeEnhanced extends BasePlugin {
 			
 		}
 		
-		numCommands = SpigotReflectUtil.addCommandsFromPackage(commandHandler, "me.egg82.hme.commands");
-		numEvents = SpigotReflectUtil.addEventsFromPackage(eventListener, "me.egg82.hme.events");
-		numPermissions = SpigotReflectUtil.addPermissionsFromClass(permissionsManager, PermissionsType.class);
-		numTicks = SpigotReflectUtil.addTicksFromPackage(tickHandler, "me.egg82.hme.ticks");
+		numCommands = SpigotReflectUtil.addCommandsFromPackage("me.egg82.hme.commands");
+		numEvents = SpigotReflectUtil.addEventsFromPackage("me.egg82.hme.events");
+		numPermissions = SpigotReflectUtil.addPermissionsFromClass(PermissionsType.class);
+		numTicks = SpigotReflectUtil.addTicksFromPackage("me.egg82.hme.ticks");
+		
+		PermissionsManager permissionsManager = (PermissionsManager) ServiceLocator.getService(PermissionsManager.class);
 		
 		Object[] enums = ReflectUtil.getStaticFields(Material.class);
 		Material[] materials = Arrays.copyOf(enums, enums.length, Material[].class);
@@ -87,11 +92,9 @@ public class HatMeEnhanced extends BasePlugin {
 		updateTimer.start();
 	}
 	public void onDisable() {
-		commandHandler.clearCommands();
-		eventListener.clearEvents();
-		permissionsManager.clearPermissions();
-		tickHandler.clearTickCommands();
+		super.onDisable();
 		
+		SpigotReflectUtil.clearAll();
 		disableMessage(Bukkit.getConsoleSender());
 	}
 	
@@ -104,8 +107,12 @@ public class HatMeEnhanced extends BasePlugin {
 	private void checkUpdate() {
 		Updater updater = new Updater(this, 100559, getFile(), UpdateType.NO_DOWNLOAD, false);
 		if (updater.getResult() == UpdateResult.UPDATE_AVAILABLE) {
-			int[] latest = parseVersion(updater.getLatestName());
-			int[] current = parseVersion(getDescription().getVersion());
+			String latestVersion = updater.getLatestName();
+			latestVersion = latestVersion.substring(latestVersion.lastIndexOf('v') + 1);
+			String currentVersion = getDescription().getVersion();
+			
+			int[] latest = VersionUtil.parseVersion(latestVersion, '.');
+			int[] current = VersionUtil.parseVersion(currentVersion, '.');
 			
 			for (int i = 0; i < Math.min(latest.length, current.length); i++) {
 				if (latest[i] < current[i]) {
@@ -113,31 +120,8 @@ public class HatMeEnhanced extends BasePlugin {
 				}
 			}
 			
-			Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + "--== " + ChatColor.YELLOW + "HatMeEnhanced UPDATE AVAILABLE (Latest: " + versionToString(latest) + " Current: " + versionToString(current) + ") " + ChatColor.GREEN + " ==--");
+			Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + "--== " + ChatColor.YELLOW + "HatMeEnhanced UPDATE AVAILABLE (Latest: " + latestVersion + " Current: " + currentVersion + ") " + ChatColor.GREEN + " ==--");
 		}
-	}
-	private int[] parseVersion(String name) {
-		int versionIndex = Math.max(0, name.lastIndexOf('v') + 1);
-		String versionString = name.substring(versionIndex);
-		
-		int firstDot = versionString.indexOf('.');
-		int middleDot = versionString.indexOf('.', firstDot + 1);
-		int lastDot = versionString.lastIndexOf('.');
-		
-		int first = Integer.parseInt(versionString.substring(0, firstDot));
-		int middle = Integer.parseInt(versionString.substring(firstDot + 1, middleDot));
-		int last = Integer.parseInt(versionString.substring(lastDot + 1));
-		
-		return new int[] {first, middle, last};
-	}
-	private String versionToString(int[] version) {
-		String retVal = "";
-		for (int i = 0; i < version.length; i++) {
-			retVal += version[i] + ".";
-		}
-		retVal = retVal.substring(0, retVal.length() - 1);
-		
-		return retVal;
 	}
 	
 	private void enableMessage(ConsoleCommandSender sender) {
@@ -148,7 +132,7 @@ public class HatMeEnhanced extends BasePlugin {
 		sender.sendMessage(ChatColor.YELLOW + "| | | | (_| | |_| |  | |  __| |__| | | | | | | (_| | | | | (_|  __| (_| |");
 		sender.sendMessage(ChatColor.YELLOW + "\\_| |_/\\__,_|\\__\\_|  |_/\\___\\____|_| |_|_| |_|\\__,_|_| |_|\\___\\___|\\__,_|");
 		sender.sendMessage(ChatColor.GREEN + "[Version " + getDescription().getVersion() + "] " + ChatColor.RED + numCommands + " commands " + ChatColor.LIGHT_PURPLE + numEvents + " events " + ChatColor.WHITE + numPermissions + " permissions " + ChatColor.YELLOW + numTicks + " tick handlers");
-		sender.sendMessage(ChatColor.WHITE + "[HatMeEnhanced] " + ChatColor.GRAY + "Attempting to load compatibility with Bukkit version " + initReg.getRegister("game.version"));
+		sender.sendMessage(ChatColor.WHITE + "[HatMeEnhanced] " + ChatColor.GRAY + "Attempting to load compatibility with Bukkit version " + ((InitRegistry) ServiceLocator.getService(InitRegistry.class)).getRegister("game.version"));
 	}
 	private void disableMessage(ConsoleCommandSender sender) {
 		sender.sendMessage(ChatColor.GREEN + "--== " + ChatColor.LIGHT_PURPLE + "HatMeEnhanced Disabled" + ChatColor.GREEN + " ==--");
