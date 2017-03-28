@@ -1,9 +1,9 @@
 package me.egg82.hme.util;
 
+import java.util.HashSet;
 import java.util.List;
 
 import org.bukkit.Location;
-import org.eclipse.collections.impl.set.mutable.UnifiedSet;
 
 import ru.beykerykt.lightapi.LightAPI;
 import ru.beykerykt.lightapi.chunks.ChunkInfo;
@@ -36,7 +36,7 @@ public class LightAPIHelper implements ILightHelper {
 		List<ChunkInfo> oldChunks = LightAPI.collectChunks(oldLoc);
 		List<ChunkInfo> newChunks = LightAPI.collectChunks(newLoc);
 		
-		UnifiedSet<ChunkInfo> updatedChunks = new UnifiedSet<ChunkInfo>();
+		HashSet<ChunkInfo> updatedChunks = new HashSet<ChunkInfo>();
 		updatedChunks.addAll(oldChunks);
 		updatedChunks.addAll(newChunks);
 		

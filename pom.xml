@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>ninja.egg82.plugins</groupId>
   <artifactId>HatMeEnhanced</artifactId>
-  <version>3.0.7</version>
+  <version>3.0.8</version>
   <name>HatMeEnhanced</name>
   <build>
     <sourceDirectory>src</sourceDirectory>
@@ -56,18 +56,6 @@
                 <relocation>
                   <pattern>net.gravitydevelopment</pattern>
                   <shadedPattern>me.egg82.hme.lib.net.gravitydevelopment</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>org.apache</pattern>
-                  <shadedPattern>me.egg82.hme.lib.org.apache</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>org.eclipse</pattern>
-                  <shadedPattern>me.egg82.hme.lib.org.eclipse</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>net.jcip</pattern>
-                  <shadedPattern>me.egg82.hme.lib.net.jcip</shadedPattern>
                 </relocation>
               </relocations>
             </configuration>
@@ -132,16 +120,6 @@
       <artifactId>lightapi</artifactId>
       <version>3.2.4</version>
       <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-lang3</artifactId>
-      <version>3.5</version>
-    </dependency>
-    <dependency>
-      <groupId>org.eclipse.collections</groupId>
-      <artifactId>eclipse-collections</artifactId>
-      <version>8.1.0</version>
     </dependency>
   </dependencies>
   <url>https://www.egg82.ninja</url>

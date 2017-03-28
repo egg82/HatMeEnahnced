@@ -1,6 +1,6 @@
 name: HatMeEnhanced
 main: me.egg82.hme.HatMeEnhanced
-version: 2.0.7
+version: 3.0.8
 softdepend: [LightAPI]
 commands:
   hat:
