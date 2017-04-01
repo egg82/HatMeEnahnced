@@ -47,11 +47,6 @@ public class HatCommand extends PluginCommand {
 			dispatch(CommandEvent.ERROR, SpigotCommandErrorType.CONSOLE_NOT_ALLOWED);
 			return;
 		}
-		if (!CommandUtil.hasPermission(sender, PermissionsType.HAT)) {
-			sender.sendMessage(SpigotMessageType.NO_PERMISSIONS);
-			dispatch(CommandEvent.ERROR, SpigotCommandErrorType.NO_PERMISSIONS);
-			return;
-		}
 		if (!CommandUtil.isArrayOfAllowedLength(args, 0, 1)) {
 			sender.sendMessage(SpigotMessageType.INCORRECT_USAGE);
 			sender.getServer().dispatchCommand(sender, "help " + command.getName());
