@@ -20,6 +20,9 @@ public class NullLightHelper implements ILightHelper {
 	public void recreateLight(Location oldLoc, Location newLoc, boolean async) {
 		
 	}
+	public void removeAllLights() {
+		
+	}
 	
 	//private
 	

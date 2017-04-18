@@ -11,8 +11,11 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.PluginManager;
 
+import ninja.egg82.patterns.IRegistry;
 import ninja.egg82.patterns.ServiceLocator;
 import ninja.egg82.plugin.BasePlugin;
 import ninja.egg82.plugin.handlers.PermissionsManager;
@@ -21,6 +24,8 @@ import ninja.egg82.plugin.utils.VersionUtil;
 import ninja.egg82.startup.InitRegistry;
 import ninja.egg82.utils.ReflectUtil;
 import me.egg82.hme.enums.PermissionsType;
+import me.egg82.hme.services.MaterialRegistry;
+import me.egg82.hme.util.ILightHelper;
 import me.egg82.hme.util.LightAPIHelper;
 import me.egg82.hme.util.NullLightHelper;
 import net.gravitydevelopment.updater.Updater;
@@ -29,6 +34,8 @@ import net.gravitydevelopment.updater.Updater.UpdateType;
 
 public class HatMeEnhanced extends BasePlugin {
 	//vars
+	private Metrics metrics = null;
+	
 	private Timer updateTimer = null;
 	
 	private int numCommands = 0;
@@ -64,10 +71,39 @@ public class HatMeEnhanced extends BasePlugin {
 		super.onEnable();
 		
 		try {
-			@SuppressWarnings("unused")
-			Metrics m = new Metrics(this);
+			metrics = new Metrics(this);
 		} catch (Exception ex) {
-			
+			Bukkit.getConsoleSender().sendMessage(ChatColor.YELLOW + "[TrollCommands++] WARNING: Connection to metrics server could not be established. This affects nothing for server owners. Nothing to worry about!");
+		}
+		
+		if (metrics != null) {
+			metrics.addCustomChart(new Metrics.SingleLineChart("hats") {
+				@Override
+				public int getValue() {
+					int numHats = 0;
+					for (Player p : Bukkit.getServer().getOnlinePlayers()) {
+						ItemStack head = p.getInventory().getHelmet();
+						if (head != null && head.getAmount() > 0 && head.getType() != Material.AIR) {
+							numHats++;
+						}
+					}
+					return numHats;
+				}
+			});
+			metrics.addCustomChart(new Metrics.SingleLineChart("glowing_hats") {
+				@Override
+				public int getValue() {
+					IRegistry materialRegistry = (IRegistry) ServiceLocator.getService(MaterialRegistry.class);
+					int numHats = 0;
+					for (Player p : Bukkit.getServer().getOnlinePlayers()) {
+						ItemStack head = p.getInventory().getHelmet();
+						if (head != null && head.getAmount() > 0 && materialRegistry.hasRegister(head.getType().name().toLowerCase())) {
+							numHats++;
+						}
+					}
+					return numHats;
+				}
+			});
 		}
 		
 		numCommands = SpigotReflectUtil.addCommandsFromPackage("me.egg82.hme.commands");
@@ -93,6 +129,9 @@ public class HatMeEnhanced extends BasePlugin {
 	}
 	public void onDisable() {
 		super.onDisable();
+		
+		ILightHelper lightHelper = (ILightHelper) ServiceLocator.getService(ILightHelper.class);
+		lightHelper.removeAllLights();
 		
 		SpigotReflectUtil.clearAll();
 		disableMessage(Bukkit.getConsoleSender());
