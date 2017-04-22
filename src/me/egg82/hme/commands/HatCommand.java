@@ -1,7 +1,9 @@
 package me.egg82.hme.commands;
 
 import java.util.Arrays;
+import java.util.Map;
 
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
@@ -22,19 +24,32 @@ import me.egg82.hme.enums.CommandErrorType;
 import me.egg82.hme.enums.MessageType;
 import me.egg82.hme.enums.PermissionsType;
 import me.egg82.hme.services.GlowRegistry;
+import me.egg82.hme.services.HatRegistry;
 import me.egg82.hme.services.MaterialRegistry;
+import me.egg82.hme.services.GlowMaterialRegistry;
 import me.egg82.hme.util.ILightHelper;
 
 public class HatCommand extends PluginCommand {
 	//vars
 	private IRegistry glowRegistry = (IRegistry) ServiceLocator.getService(GlowRegistry.class);
+	private IRegistry glowMaterialRegistry = (IRegistry) ServiceLocator.getService(GlowMaterialRegistry.class);
 	private IRegistry materialRegistry = (IRegistry) ServiceLocator.getService(MaterialRegistry.class);
+	private IRegistry hatRegistry = (IRegistry) ServiceLocator.getService(HatRegistry.class);
+	
 	private ILightHelper lightHelper = (ILightHelper) ServiceLocator.getService(ILightHelper.class);
 	private IPlayerUtil playerUtil = (IPlayerUtil) ServiceLocator.getService(IPlayerUtil.class);
 	
 	//constructor
+	@SuppressWarnings("deprecation")
 	public HatCommand(CommandSender sender, org.bukkit.command.Command command, String label, String[] args) {
 		super(sender, command, label, args);
+		
+		Object[] enums = ReflectUtil.getStaticFields(Material.class);
+		Material[] materials = Arrays.copyOf(enums, enums.length, Material[].class);
+		for (Material m : materials) {
+			materialRegistry.setRegister(m.toString().toLowerCase(), Material.class, m);
+			materialRegistry.setRegister(Integer.toString(m.getId()), Material.class, m);
+		}
 	}
 	
 	//public
@@ -42,9 +57,9 @@ public class HatCommand extends PluginCommand {
 	//private
 	@SuppressWarnings("deprecation")
 	protected void onExecute(long elapsedMilliseconds) {
-		if (!CommandUtil.isPlayer(sender)) {
-			sender.sendMessage(SpigotMessageType.CONSOLE_NOT_ALLOWED);
-			dispatch(CommandEvent.ERROR, SpigotCommandErrorType.CONSOLE_NOT_ALLOWED);
+		if (!CommandUtil.hasPermission(sender, PermissionsType.HAT)) {
+			sender.sendMessage(SpigotMessageType.NO_PERMISSIONS);
+			dispatch(CommandEvent.ERROR, SpigotCommandErrorType.NO_PERMISSIONS);
 			return;
 		}
 		if (!CommandUtil.isArrayOfAllowedLength(args, 0, 1)) {
@@ -53,91 +68,243 @@ public class HatCommand extends PluginCommand {
 			dispatch(CommandEvent.ERROR, SpigotCommandErrorType.INCORRECT_USAGE);
 			return;
 		}
+		if (!CommandUtil.isPlayer(sender)) {
+			sender.sendMessage(SpigotMessageType.CONSOLE_NOT_ALLOWED);
+			dispatch(CommandEvent.ERROR, SpigotCommandErrorType.CONSOLE_NOT_ALLOWED);
+			return;
+		}
 		
-		if (args.length == 0) {
-			ItemStack hand = playerUtil.getItemInMainHand((Player) sender);
-			ItemStack hand2 = new ItemStack(hand);
-			hand2.setAmount(1);
-			if (hat((Player) sender, hand2)) {
+		Player player = (Player) sender;
+		
+		ItemStack hand = playerUtil.getItemInMainHand(player);
+		if (hand == null || hand.getType() == Material.AIR || hand.getAmount() == 0) {
+			// TODO Hand is empty. Mob/Player hat time!
+			if (args.length == 0) {
+				// Hat self, mob/player
+				
+				// Check if player can hat mobs or players
+				if (!CommandUtil.hasPermission(player, PermissionsType.MOB) && !CommandUtil.hasPermission(player, PermissionsType.PLAYER)) {
+					sender.sendMessage(SpigotMessageType.NO_PERMISSIONS);
+					dispatch(CommandEvent.ERROR, SpigotCommandErrorType.NO_PERMISSIONS);
+					return;
+				}
+				
+				hatRegistry.setRegister(player.getUniqueId().toString(), String.class, player.getUniqueId().toString());
+				sender.sendMessage(ChatColor.YELLOW + "Right-click on any mob or player to give yourself a lovely hat!");
+			} else {
+				if (materialRegistry.hasRegister(args[0].toLowerCase())) {
+					// Hat give
+					ItemStack blockHat = new ItemStack((Material) materialRegistry.getRegister(args[0].toLowerCase()), 1);
+					PlayerInventory inventory = player.getInventory();
+					
+					// Check if player can use this type of hat
+					if (!CommandUtil.hasPermission(player, PermissionsType.HAT + "." + blockHat.getTypeId()) && !CommandUtil.hasPermission(player, PermissionsType.HAT + "." + blockHat.getType().toString().toLowerCase())) {
+						sender.sendMessage(MessageType.NO_PERMISSIONS_HAT);
+						dispatch(CommandEvent.ERROR, CommandErrorType.NO_PERMISSIONS_HAT);
+						return;
+					}
+					
+					// Check if player can /give
+					if (!CommandUtil.hasPermission(player, PermissionsType.GIVE)) {
+						sender.sendMessage(SpigotMessageType.NO_PERMISSIONS);
+						dispatch(CommandEvent.ERROR, SpigotCommandErrorType.NO_PERMISSIONS);
+						return;
+					}
+					
+					// Remove old hat (if any)
+					if (!removeHat(inventory)) {
+						sender.sendMessage(MessageType.NO_SPACE);
+						dispatch(CommandEvent.ERROR, CommandErrorType.NO_SPACE);
+						return;
+					}
+					
+					hat(player.getUniqueId().toString(), player, inventory, blockHat);
+				} else {
+					// Hat others, mob/player
+					
+					// Check if player can hat mobs or players
+					if (!CommandUtil.hasPermission(player, PermissionsType.MOB) && !CommandUtil.hasPermission(player, PermissionsType.PLAYER)) {
+						sender.sendMessage(SpigotMessageType.NO_PERMISSIONS);
+						dispatch(CommandEvent.ERROR, SpigotCommandErrorType.NO_PERMISSIONS);
+						return;
+					}
+					
+					// Check if player can hat others
+					if (!CommandUtil.hasPermission(player, PermissionsType.OTHERS)) {
+						sender.sendMessage(SpigotMessageType.NO_PERMISSIONS);
+						dispatch(CommandEvent.ERROR, SpigotCommandErrorType.NO_PERMISSIONS);
+						return;
+					}
+					
+					// Check player exists
+					Player hatPlayer = CommandUtil.getPlayerByName(args[0]);
+					if (hatPlayer == null) {
+						sender.sendMessage(SpigotMessageType.PLAYER_NOT_FOUND);
+						dispatch(CommandEvent.ERROR, SpigotCommandErrorType.PLAYER_NOT_FOUND);
+						return;
+					}
+					
+					// Check if player is immune
+					if (CommandUtil.hasPermission(hatPlayer, PermissionsType.IMMUNE)) {
+						sender.sendMessage(MessageType.IMMUNE);
+						dispatch(CommandEvent.ERROR, CommandErrorType.IMMUNE);
+						return;
+					}
+					
+					hatRegistry.setRegister(player.getUniqueId().toString(), String.class, hatPlayer.getUniqueId().toString());
+					sender.sendMessage(ChatColor.YELLOW + "Right-click on any mob or player to give " + hatPlayer.getName() + " a lovely hat!");
+				}
+			}
+		} else {
+			// Hand has an item. Block/Item hats!
+			ItemStack blockHat = null;
+			PlayerInventory inventory = null;
+			
+			if (args.length == 0) {
+				// Hat self, no additional args
+				blockHat = new ItemStack(hand);
+				inventory = player.getInventory();
+				
+				// Check if player can use this type of hat
+				if (!CommandUtil.hasPermission(player, PermissionsType.HAT + "." + blockHat.getTypeId()) && !CommandUtil.hasPermission(player, PermissionsType.HAT + "." + blockHat.getType().toString().toLowerCase())) {
+					sender.sendMessage(MessageType.NO_PERMISSIONS_HAT);
+					dispatch(CommandEvent.ERROR, CommandErrorType.NO_PERMISSIONS_HAT);
+					return;
+				}
+				
+				// Get/Set correct stack amounts
+				blockHat.setAmount(1);
 				if (hand.getAmount() == 1) {
-					playerUtil.setItemInMainHand((Player) sender, null);
+					playerUtil.setItemInMainHand(player, null);
 				} else {
 					hand.setAmount(hand.getAmount() - 1);
 				}
-			}
-		} else if (args.length == 1) {
-			if (args[0].equalsIgnoreCase("-a")) {
-				if (!CommandUtil.hasPermission((Player) sender, PermissionsType.STACK)) {
-					sender.sendMessage(SpigotMessageType.NO_PERMISSIONS);
-					dispatch(CommandEvent.ERROR, SpigotCommandErrorType.NO_PERMISSIONS);
+				
+				// Remove old hat (if any)
+				if (!removeHat(inventory)) {
+					sender.sendMessage(MessageType.NO_SPACE);
+					dispatch(CommandEvent.ERROR, CommandErrorType.NO_SPACE);
 					return;
 				}
-				if (hat((Player) sender, ((Player) sender).getInventory().getItemInMainHand())) {
-					((Player) sender).getInventory().setItemInMainHand(null);
-				}
+				
+				hat(player.getUniqueId().toString(), player, inventory, blockHat);
 			} else {
-				if (!CommandUtil.hasPermission((Player) sender, PermissionsType.GIVE)) {
-					sender.sendMessage(SpigotMessageType.NO_PERMISSIONS);
-					dispatch(CommandEvent.ERROR, SpigotCommandErrorType.NO_PERMISSIONS);
-					return;
-				}
-				
-				Object[] enums = ReflectUtil.getStaticFields(Material.class);
-				Material[] materials = Arrays.copyOf(enums, enums.length, Material[].class);
-				boolean found = false;
-				for (Material m : materials) {
-					if (m.toString().equalsIgnoreCase(args[0])) {
-						hat((Player) sender, new ItemStack(m, 1));
-						found = true;
-						break;
-					}
-				}
-				
-				if (!found) {
-					try {
-						hat((Player) sender, new ItemStack(Material.getMaterial(Integer.parseInt(args[0])), 1));
-					} catch (Exception ex) {
-						sender.sendMessage(SpigotMessageType.INCORRECT_USAGE);
-						sender.getServer().dispatchCommand(sender, "help " + command.getName());
-						dispatch(CommandEvent.ERROR, SpigotCommandErrorType.INCORRECT_USAGE);
+				if (args[0].equalsIgnoreCase("-a")) {
+					// Hat entire stack
+					blockHat = new ItemStack(hand);
+					inventory = player.getInventory();
+					
+					// Check if player can use this type of hat
+					if (!CommandUtil.hasPermission(player, PermissionsType.HAT + "." + blockHat.getTypeId()) && !CommandUtil.hasPermission(player, PermissionsType.HAT + "." + blockHat.getType().toString().toLowerCase())) {
+						sender.sendMessage(MessageType.NO_PERMISSIONS_HAT);
+						dispatch(CommandEvent.ERROR, CommandErrorType.NO_PERMISSIONS_HAT);
 						return;
 					}
+					
+					// Check if player can use -a
+					if (!CommandUtil.hasPermission(player, PermissionsType.STACK)) {
+						sender.sendMessage(SpigotMessageType.NO_PERMISSIONS);
+						dispatch(CommandEvent.ERROR, SpigotCommandErrorType.NO_PERMISSIONS);
+						return;
+					}
+					
+					blockHat.setAmount(hand.getAmount());
+					playerUtil.setItemInMainHand(player, null);
+					
+					// Remove old hat (if any)
+					if (!removeHat(inventory)) {
+						sender.sendMessage(MessageType.NO_SPACE);
+						dispatch(CommandEvent.ERROR, CommandErrorType.NO_SPACE);
+						return;
+					}
+					
+					hat(player.getUniqueId().toString(), player, inventory, blockHat);
+				} else if (materialRegistry.hasRegister(args[0].toLowerCase())) {
+					// Hat give
+					blockHat = new ItemStack((Material) materialRegistry.getRegister(args[0].toLowerCase()), 1);
+					inventory = player.getInventory();
+					
+					// Check if player can use this type of hat
+					if (!CommandUtil.hasPermission(player, PermissionsType.HAT + "." + blockHat.getTypeId()) && !CommandUtil.hasPermission(player, PermissionsType.HAT + "." + blockHat.getType().toString().toLowerCase())) {
+						sender.sendMessage(MessageType.NO_PERMISSIONS_HAT);
+						dispatch(CommandEvent.ERROR, CommandErrorType.NO_PERMISSIONS_HAT);
+						return;
+					}
+					
+					// Check if player can /give
+					if (!CommandUtil.hasPermission(player, PermissionsType.GIVE)) {
+						sender.sendMessage(SpigotMessageType.NO_PERMISSIONS);
+						dispatch(CommandEvent.ERROR, SpigotCommandErrorType.NO_PERMISSIONS);
+						return;
+					}
+					
+					// Remove old hat (if any)
+					if (!removeHat(inventory)) {
+						sender.sendMessage(MessageType.NO_SPACE);
+						dispatch(CommandEvent.ERROR, CommandErrorType.NO_SPACE);
+						return;
+					}
+					
+					hat(player.getUniqueId().toString(), player, inventory, blockHat);
+				} else {
+					// Hat others
+					
+					// Check if player can hat others
+					if (!CommandUtil.hasPermission(player, PermissionsType.OTHERS)) {
+						sender.sendMessage(SpigotMessageType.NO_PERMISSIONS);
+						dispatch(CommandEvent.ERROR, SpigotCommandErrorType.NO_PERMISSIONS);
+						return;
+					}
+					
+					// Check player exists
+					Player hatPlayer = CommandUtil.getPlayerByName(args[0]);
+					if (hatPlayer == null) {
+						sender.sendMessage(SpigotMessageType.PLAYER_NOT_FOUND);
+						dispatch(CommandEvent.ERROR, SpigotCommandErrorType.PLAYER_NOT_FOUND);
+						return;
+					}
+					
+					// Check if player is immune
+					if (CommandUtil.hasPermission(hatPlayer, PermissionsType.IMMUNE)) {
+						sender.sendMessage(MessageType.IMMUNE);
+						dispatch(CommandEvent.ERROR, CommandErrorType.IMMUNE);
+						return;
+					}
+					
+					blockHat = new ItemStack(hand);
+					inventory = hatPlayer.getInventory();
+					
+					// Check if player can use this type of hat
+					if (!CommandUtil.hasPermission(player, PermissionsType.HAT + "." + blockHat.getTypeId()) && !CommandUtil.hasPermission(player, PermissionsType.HAT + "." + blockHat.getType().toString().toLowerCase())) {
+						sender.sendMessage(MessageType.NO_PERMISSIONS_HAT);
+						dispatch(CommandEvent.ERROR, CommandErrorType.NO_PERMISSIONS_HAT);
+						return;
+					}
+					
+					// Get/Set correct stack amounts
+					blockHat.setAmount(1);
+					if (hand.getAmount() == 1) {
+						playerUtil.setItemInMainHand(player, null);
+					} else {
+						hand.setAmount(hand.getAmount() - 1);
+					}
+					
+					// Remove old hat (if any)
+					if (!removeHat(inventory)) {
+						sender.sendMessage(MessageType.NO_SPACE);
+						dispatch(CommandEvent.ERROR, CommandErrorType.NO_SPACE);
+						return;
+					}
+					
+					hat(hatPlayer.getUniqueId().toString(), hatPlayer, inventory, blockHat);
 				}
 			}
-			
-			dispatch(CommandEvent.COMPLETE, null);
 		}
+		
+		dispatch(CommandEvent.COMPLETE, null);
 	}
-	@SuppressWarnings("deprecation")
-	private boolean hat(Player player, ItemStack stack) {
-		if (!CommandUtil.hasPermission((Player) sender, PermissionsType.HAT + "." + stack.getTypeId()) && !CommandUtil.hasPermission((Player) sender, PermissionsType.HAT + "." + stack.getType().toString().toLowerCase()) && !CommandUtil.hasPermission(player, PermissionsType.ANY)) {
-			sender.sendMessage(SpigotMessageType.NO_PERMISSIONS);
-			dispatch(CommandEvent.ERROR, SpigotCommandErrorType.NO_PERMISSIONS);
-			return false;
-		}
-		
-		String uuid = player.getUniqueId().toString();
-		PlayerInventory inv = player.getInventory();
-		Material type = stack.getType();
-		
-		if (type == Material.AIR) {
-			sender.sendMessage(MessageType.NO_AIR);
-			dispatch(CommandEvent.ERROR, CommandErrorType.NO_AIR);
-			return false;
-		}
-		if (inv.getHelmet() != null) {
-			int empty = inv.firstEmpty();
-			if (empty == -1) {
-				sender.sendMessage(MessageType.NO_SPACE);
-				dispatch(CommandEvent.ERROR, CommandErrorType.NO_SPACE);
-				return false;
-			}
-			ItemStack head = inv.getHelmet();
-			inv.setItem(empty, head);
-			inv.setHelmet(null);
-		}
-		
-		if (materialRegistry.hasRegister(type.toString().toLowerCase())) {
+	private void hat(String uuid, Player player, PlayerInventory inventory, ItemStack helmet) {
+		if (glowMaterialRegistry.hasRegister(helmet.getType().toString().toLowerCase())) {
 			if (!glowRegistry.hasRegister(uuid)) {
 				Location loc = player.getLocation().clone();
 				loc.setX(loc.getBlockX() + 0.5d);
@@ -149,10 +316,48 @@ public class HatCommand extends PluginCommand {
 			}
 		}
 		
-		inv.setHelmet(stack);
+		inventory.setHelmet(helmet);
 		
-		sender.sendMessage("What a lovely hat!");
+		player.sendMessage("What a lovely hat!");
+		if (player != sender) {
+			sender.sendMessage("What a lovely hat!");
+		}
+	}
+	
+	private boolean removeHat(PlayerInventory inventory) {
+		ItemStack helmet = inventory.getHelmet();
 		
+		if (helmet == null || helmet.getType() == Material.AIR || helmet.getAmount() == 0) {
+			return true;
+		}
+		
+		int slot = -1;
+		if (helmet.getDurability() == 0) {
+			inventory.setHelmet(null);
+			Map<Integer, ? extends ItemStack> slots = inventory.all(helmet.getType());
+			
+			for (Map.Entry<Integer, ? extends ItemStack> entry : slots.entrySet()) {
+				int amount = entry.getValue().getAmount();
+				if (amount - helmet.getAmount() <= 64) {
+					helmet.setAmount(helmet.getAmount() + amount);
+					slot = entry.getKey();
+					break;
+				}
+			}
+			
+			if (slot == -1) {
+				slot = inventory.firstEmpty();
+			}
+		} else {
+			slot = inventory.firstEmpty();
+		}
+		
+		if (slot == -1) {
+			return false;
+		}
+		
+		inventory.setHelmet(null);
+		inventory.setItem(slot, helmet);
 		return true;
 	}
 }

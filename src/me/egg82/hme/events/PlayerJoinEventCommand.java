@@ -8,7 +8,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
 import me.egg82.hme.services.GlowRegistry;
-import me.egg82.hme.services.MaterialRegistry;
+import me.egg82.hme.services.GlowMaterialRegistry;
 import me.egg82.hme.util.ILightHelper;
 import ninja.egg82.patterns.IRegistry;
 import ninja.egg82.patterns.ServiceLocator;
@@ -17,7 +17,7 @@ import ninja.egg82.plugin.commands.EventCommand;
 public class PlayerJoinEventCommand extends EventCommand {
 	//vars
 	private IRegistry glowRegistry = (IRegistry) ServiceLocator.getService(GlowRegistry.class);
-	private IRegistry glowMaterialRegistry = (IRegistry) ServiceLocator.getService(MaterialRegistry.class);
+	private IRegistry glowMaterialRegistry = (IRegistry) ServiceLocator.getService(GlowMaterialRegistry.class);
 	private ILightHelper lightHelper = (ILightHelper) ServiceLocator.getService(ILightHelper.class);
 	
 	//constructor

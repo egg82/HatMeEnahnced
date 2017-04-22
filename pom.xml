@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>ninja.egg82.plugins</groupId>
   <artifactId>HatMeEnhanced</artifactId>
-  <version>3.0.11</version>
+  <version>3.1.12</version>
   <name>HatMeEnhanced</name>
   <build>
     <sourceDirectory>src</sourceDirectory>
@@ -103,12 +103,12 @@
     <dependency>
       <groupId>ninja.egg82.lib</groupId>
       <artifactId>spigot-lib</artifactId>
-      <version>1.2.9</version>
+      <version>1.2.10</version>
     </dependency>
      <dependency>
       <groupId>ninja.egg82.lib</groupId>
       <artifactId>egg82-lib</artifactId>
-      <version>1.1.4</version>
+      <version>1.1.5</version>
     </dependency>
     <dependency>
       <groupId>net.gravitydevelopment.updater</groupId>

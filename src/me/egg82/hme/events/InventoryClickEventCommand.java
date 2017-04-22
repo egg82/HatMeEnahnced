@@ -8,7 +8,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
 import me.egg82.hme.services.GlowRegistry;
-import me.egg82.hme.services.MaterialRegistry;
+import me.egg82.hme.services.GlowMaterialRegistry;
 import me.egg82.hme.util.ILightHelper;
 import ninja.egg82.patterns.IRegistry;
 import ninja.egg82.patterns.ServiceLocator;
@@ -17,7 +17,7 @@ import ninja.egg82.plugin.commands.EventCommand;
 public class InventoryClickEventCommand extends EventCommand {
 	//vars
 	private IRegistry glowRegistry = (IRegistry) ServiceLocator.getService(GlowRegistry.class);
-	private IRegistry materialRegistry = (IRegistry) ServiceLocator.getService(MaterialRegistry.class);
+	private IRegistry glowMaterialRegistry = (IRegistry) ServiceLocator.getService(GlowMaterialRegistry.class);
 	private ILightHelper lightHelper = (ILightHelper) ServiceLocator.getService(ILightHelper.class);
 	
 	//constructor
@@ -50,7 +50,7 @@ public class InventoryClickEventCommand extends EventCommand {
 		Player player = (Player) e.getWhoClicked();
 		String uuid = player.getUniqueId().toString();
 		
-		if (helmet != null && materialRegistry.hasRegister(helmet.getType().toString().toLowerCase())) {
+		if (helmet != null && glowMaterialRegistry.hasRegister(helmet.getType().toString().toLowerCase())) {
 			if (!glowRegistry.hasRegister(uuid)) {
 				Location loc = player.getLocation().clone();
 				loc.setX(loc.getBlockX() + 0.5d);

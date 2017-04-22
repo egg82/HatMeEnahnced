@@ -11,6 +11,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.PluginManager;
@@ -24,7 +25,7 @@ import ninja.egg82.plugin.utils.VersionUtil;
 import ninja.egg82.startup.InitRegistry;
 import ninja.egg82.utils.ReflectUtil;
 import me.egg82.hme.enums.PermissionsType;
-import me.egg82.hme.services.MaterialRegistry;
+import me.egg82.hme.services.GlowMaterialRegistry;
 import me.egg82.hme.util.ILightHelper;
 import me.egg82.hme.util.LightAPIHelper;
 import me.egg82.hme.util.NullLightHelper;
@@ -93,11 +94,11 @@ public class HatMeEnhanced extends BasePlugin {
 			metrics.addCustomChart(new Metrics.SingleLineChart("glowing_hats") {
 				@Override
 				public int getValue() {
-					IRegistry materialRegistry = (IRegistry) ServiceLocator.getService(MaterialRegistry.class);
+					IRegistry glowMaterialRegistry = (IRegistry) ServiceLocator.getService(GlowMaterialRegistry.class);
 					int numHats = 0;
 					for (Player p : Bukkit.getServer().getOnlinePlayers()) {
 						ItemStack head = p.getInventory().getHelmet();
-						if (head != null && head.getAmount() > 0 && materialRegistry.hasRegister(head.getType().name().toLowerCase())) {
+						if (head != null && head.getAmount() > 0 && glowMaterialRegistry.hasRegister(head.getType().name().toLowerCase())) {
 							numHats++;
 						}
 					}
@@ -119,6 +120,14 @@ public class HatMeEnhanced extends BasePlugin {
 			if (m != null) {
 				permissionsManager.addPermission("hme.hat." + Integer.toString(m.getId()));
 				permissionsManager.addPermission("hme.hat." + m.toString().toLowerCase());
+			}
+		}
+		
+		enums = ReflectUtil.getStaticFields(EntityType.class);
+		EntityType[] entityTypes = Arrays.copyOf(enums, enums.length, EntityType[].class);
+		for (EntityType e : entityTypes) {
+			if (e != null) {
+				permissionsManager.addPermission("hme.mob." + e.toString().toLowerCase());
 			}
 		}
 		
