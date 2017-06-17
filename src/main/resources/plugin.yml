@@ -1,11 +1,11 @@
 name: HatMeEnhanced
 main: me.egg82.hme.HatMeEnhanced
-version: 3.1.12
+version: 3.1.13
 softdepend: [LightAPI]
 commands:
   hat:
-    description: Puts the item (or item stack with -a) in your hand on your (or other player's) head. Optionally uses an item ID or type instead. 
+    description: Puts the item (or item stack with -a) in your hand on your (or other player's) head. Use an empty hand to select a mob or player hat. Optionally uses an item ID or type instead. 
     usage: /hat [player,-a,itemID]
   unhat:
-    description: Puts the item on your (or the player if specified) head back in the inventory.
+    description: Puts the item on your (or the player if specified) head back in the inventory (or down).
     usage: /unhat [player]
