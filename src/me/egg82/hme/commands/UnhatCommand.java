@@ -133,7 +133,7 @@ public class UnhatCommand extends PluginCommand {
 			
 			for (Map.Entry<Integer, ? extends ItemStack> entry : slots.entrySet()) {
 				int amount = entry.getValue().getAmount();
-				if (amount - helmet.getAmount() <= 64) {
+				if (amount - helmet.getAmount() <= helmet.getMaxStackSize()) {
 					helmet.setAmount(helmet.getAmount() + amount);
 					slot = entry.getKey();
 					break;
