@@ -15,7 +15,7 @@ import ninja.egg82.patterns.ServiceLocator;
 import ninja.egg82.plugin.commands.PluginCommand;
 import ninja.egg82.plugin.enums.SpigotCommandErrorType;
 import ninja.egg82.plugin.enums.SpigotMessageType;
-import ninja.egg82.plugin.reflection.entity.IEntityUtil;
+import ninja.egg82.plugin.reflection.entity.IEntityHelper;
 import ninja.egg82.plugin.utils.CommandUtil;
 import me.egg82.hme.enums.CommandErrorType;
 import me.egg82.hme.enums.MessageType;
@@ -30,7 +30,7 @@ public class UnhatCommand extends PluginCommand {
 	private IRegistry mobRegistry = (IRegistry) ServiceLocator.getService(MobRegistry.class);
 	
 	private ILightHelper lightHelper = (ILightHelper) ServiceLocator.getService(ILightHelper.class);
-	private IEntityUtil entityUtil = (IEntityUtil) ServiceLocator.getService(IEntityUtil.class);
+	private IEntityHelper entityUtil = (IEntityHelper) ServiceLocator.getService(IEntityHelper.class);
 	
 	//constructor
 	public UnhatCommand(CommandSender sender, org.bukkit.command.Command command, String label, String[] args) {
@@ -102,6 +102,11 @@ public class UnhatCommand extends PluginCommand {
 		
 		dispatch(CommandEvent.COMPLETE, null);
 	}
+	
+	protected void onUndo() {
+		
+	}
+	
 	private void unhat(String uuid, Player player) {
 		entityUtil.removeAllPassengers(player);
 		mobRegistry.setRegister(uuid, String.class, null);

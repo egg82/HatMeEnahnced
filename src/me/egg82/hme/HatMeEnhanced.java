@@ -10,7 +10,6 @@ import org.bstats.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -58,10 +57,10 @@ public class HatMeEnhanced extends BasePlugin {
 		PluginManager manager = getServer().getPluginManager();
 		
 		if (manager.getPlugin("LightAPI") != null) {
-			Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + "[HatMeEnhanced] Enabling support for LightAPI.");
+			info(ChatColor.GREEN + "[HatMeEnhanced] Enabling support for LightAPI.");
 			ServiceLocator.provideService(LightAPIHelper.class);
 		} else {
-			Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "[HatMeEnhanced] LightAPI was not found. Lights won't appear with blocks that light up.");
+			warning(ChatColor.RED + "[HatMeEnhanced] LightAPI was not found. Lights won't appear with blocks that light up.");
 			ServiceLocator.provideService(NullLightHelper.class);
 		}
 		
@@ -74,7 +73,7 @@ public class HatMeEnhanced extends BasePlugin {
 		try {
 			metrics = new Metrics(this);
 		} catch (Exception ex) {
-			Bukkit.getConsoleSender().sendMessage(ChatColor.YELLOW + "[TrollCommands++] WARNING: Connection to metrics server could not be established. This affects nothing for server owners. Nothing to worry about!");
+			info(ChatColor.YELLOW + "[TrollCommands++] WARNING: Connection to metrics server could not be established. This affects nothing for server owners, but it does make me sad :(");
 		}
 		
 		if (metrics != null) {
@@ -131,7 +130,7 @@ public class HatMeEnhanced extends BasePlugin {
 			}
 		}
 		
-		enableMessage(Bukkit.getConsoleSender());
+		enableMessage();
 		checkUpdate();
 		updateTimer.setRepeats(true);
 		updateTimer.start();
@@ -143,7 +142,7 @@ public class HatMeEnhanced extends BasePlugin {
 		lightHelper.removeAllLights();
 		
 		SpigotReflectUtil.clearAll();
-		disableMessage(Bukkit.getConsoleSender());
+		disableMessage();
 	}
 	
 	//private
@@ -172,17 +171,17 @@ public class HatMeEnhanced extends BasePlugin {
 		}
 	}
 	
-	private void enableMessage(ConsoleCommandSender sender) {
-		sender.sendMessage(ChatColor.YELLOW + " _   _       _  ___  ___     _____      _                              _ ");
-		sender.sendMessage(ChatColor.YELLOW + "| | | |     | | |  \\/  |    |  ___|    | |                            | |");
-		sender.sendMessage(ChatColor.YELLOW + "| |_| | __ _| |_| .  . | ___| |__ _ __ | |__   __ _ _ __   ___ ___  __| |");
-		sender.sendMessage(ChatColor.YELLOW + "|  _  |/ _` | __| |\\/| |/ _ |  __| '_ \\| '_ \\ / _` | '_ \\ / __/ _ \\/ _` |");
-		sender.sendMessage(ChatColor.YELLOW + "| | | | (_| | |_| |  | |  __| |__| | | | | | | (_| | | | | (_|  __| (_| |");
-		sender.sendMessage(ChatColor.YELLOW + "\\_| |_/\\__,_|\\__\\_|  |_/\\___\\____|_| |_|_| |_|\\__,_|_| |_|\\___\\___|\\__,_|");
-		sender.sendMessage(ChatColor.GREEN + "[Version " + getDescription().getVersion() + "] " + ChatColor.RED + numCommands + " commands " + ChatColor.LIGHT_PURPLE + numEvents + " events " + ChatColor.WHITE + numPermissions + " permissions " + ChatColor.YELLOW + numTicks + " tick handlers");
-		sender.sendMessage(ChatColor.WHITE + "[HatMeEnhanced] " + ChatColor.GRAY + "Attempting to load compatibility with Bukkit version " + ((InitRegistry) ServiceLocator.getService(InitRegistry.class)).getRegister("game.version"));
+	private void enableMessage() {
+		info(ChatColor.YELLOW + " _   _       _  ___  ___     _____      _                              _ ");
+		info(ChatColor.YELLOW + "| | | |     | | |  \\/  |    |  ___|    | |                            | |");
+		info(ChatColor.YELLOW + "| |_| | __ _| |_| .  . | ___| |__ _ __ | |__   __ _ _ __   ___ ___  __| |");
+		info(ChatColor.YELLOW + "|  _  |/ _` | __| |\\/| |/ _ |  __| '_ \\| '_ \\ / _` | '_ \\ / __/ _ \\/ _` |");
+		info(ChatColor.YELLOW + "| | | | (_| | |_| |  | |  __| |__| | | | | | | (_| | | | | (_|  __| (_| |");
+		info(ChatColor.YELLOW + "\\_| |_/\\__,_|\\__\\_|  |_/\\___\\____|_| |_|_| |_|\\__,_|_| |_|\\___\\___|\\__,_|");
+		info(ChatColor.GREEN + "[Version " + getDescription().getVersion() + "] " + ChatColor.RED + numCommands + " commands " + ChatColor.LIGHT_PURPLE + numEvents + " events " + ChatColor.WHITE + numPermissions + " permissions " + ChatColor.YELLOW + numTicks + " tick handlers");
+		info(ChatColor.WHITE + "[HatMeEnhanced] " + ChatColor.GRAY + "Attempting to load compatibility with Bukkit version " + ((InitRegistry) ServiceLocator.getService(InitRegistry.class)).getRegister("game.version"));
 	}
-	private void disableMessage(ConsoleCommandSender sender) {
-		sender.sendMessage(ChatColor.GREEN + "--== " + ChatColor.LIGHT_PURPLE + "HatMeEnhanced Disabled" + ChatColor.GREEN + " ==--");
+	private void disableMessage() {
+		info(ChatColor.GREEN + "--== " + ChatColor.LIGHT_PURPLE + "HatMeEnhanced Disabled" + ChatColor.GREEN + " ==--");
 	}
 }

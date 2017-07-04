@@ -17,7 +17,7 @@ import ninja.egg82.patterns.ServiceLocator;
 import ninja.egg82.plugin.commands.PluginCommand;
 import ninja.egg82.plugin.enums.SpigotCommandErrorType;
 import ninja.egg82.plugin.enums.SpigotMessageType;
-import ninja.egg82.plugin.reflection.player.IPlayerUtil;
+import ninja.egg82.plugin.reflection.player.IPlayerHelper;
 import ninja.egg82.plugin.utils.CommandUtil;
 import ninja.egg82.utils.ReflectUtil;
 import me.egg82.hme.enums.CommandErrorType;
@@ -37,7 +37,7 @@ public class HatCommand extends PluginCommand {
 	private IRegistry hatRegistry = (IRegistry) ServiceLocator.getService(HatRegistry.class);
 	
 	private ILightHelper lightHelper = (ILightHelper) ServiceLocator.getService(ILightHelper.class);
-	private IPlayerUtil playerUtil = (IPlayerUtil) ServiceLocator.getService(IPlayerUtil.class);
+	private IPlayerHelper playerUtil = (IPlayerHelper) ServiceLocator.getService(IPlayerHelper.class);
 	
 	//constructor
 	@SuppressWarnings("deprecation")
@@ -303,6 +303,11 @@ public class HatCommand extends PluginCommand {
 		
 		dispatch(CommandEvent.COMPLETE, null);
 	}
+	
+	protected void onUndo() {
+		
+	}
+	
 	private void hat(String uuid, Player player, PlayerInventory inventory, ItemStack helmet) {
 		if (glowMaterialRegistry.hasRegister(helmet.getType().toString().toLowerCase())) {
 			if (!glowRegistry.hasRegister(uuid)) {

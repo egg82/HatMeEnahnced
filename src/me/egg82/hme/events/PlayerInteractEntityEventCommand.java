@@ -12,7 +12,7 @@ import me.egg82.hme.services.MobRegistry;
 import ninja.egg82.patterns.IRegistry;
 import ninja.egg82.patterns.ServiceLocator;
 import ninja.egg82.plugin.commands.EventCommand;
-import ninja.egg82.plugin.reflection.entity.IEntityUtil;
+import ninja.egg82.plugin.reflection.entity.IEntityHelper;
 import ninja.egg82.plugin.utils.CommandUtil;
 
 public class PlayerInteractEntityEventCommand extends EventCommand {
@@ -20,7 +20,7 @@ public class PlayerInteractEntityEventCommand extends EventCommand {
 	private IRegistry hatRegistry = (IRegistry) ServiceLocator.getService(HatRegistry.class);
 	private IRegistry mobRegistry = (IRegistry) ServiceLocator.getService(MobRegistry.class);
 	
-	private IEntityUtil entityUtil = (IEntityUtil) ServiceLocator.getService(IEntityUtil.class);
+	private IEntityHelper entityUtil = (IEntityHelper) ServiceLocator.getService(IEntityHelper.class);
 	
 	//constructor
 	public PlayerInteractEntityEventCommand(Event event) {
