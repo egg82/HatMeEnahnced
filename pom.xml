@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>ninja.egg82.plugins</groupId>
   <artifactId>HatMeEnhanced</artifactId>
-  <version>3.1.15</version>
+  <version>3.1.16</version>
   <name>HatMeEnhanced</name>
   <build>
     <sourceDirectory>src</sourceDirectory>
@@ -79,7 +79,7 @@
     </repository>
     <repository>
       <id>egg82-ninja</id>
-      <url>https://www.egg82.ninja/repo/minecraft/libs/</url>
+      <url>https://www.myget.org/F/egg82-java/maven/</url>
     </repository>
   </repositories>
   <dependencies>
