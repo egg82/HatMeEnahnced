@@ -1,4 +1,4 @@
-package me.egg82.hme.util;
+package me.egg82.hme.reflection.light;
 
 import org.bukkit.Location;
 

@@ -1,11 +1,12 @@
 package me.egg82.hme.events;
 
+import java.util.UUID;
+
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 
-import me.egg82.hme.enums.MessageType;
+import me.egg82.hme.enums.LanguageType;
 import me.egg82.hme.enums.PermissionsType;
 import me.egg82.hme.services.HatRegistry;
 import me.egg82.hme.services.MobRegistry;
@@ -14,16 +15,17 @@ import ninja.egg82.patterns.ServiceLocator;
 import ninja.egg82.plugin.commands.EventCommand;
 import ninja.egg82.plugin.reflection.entity.IEntityHelper;
 import ninja.egg82.plugin.utils.CommandUtil;
+import ninja.egg82.plugin.utils.LanguageUtil;
 
-public class PlayerInteractEntityEventCommand extends EventCommand {
+public class PlayerInteractEntityEventCommand extends EventCommand<PlayerInteractEntityEvent> {
 	//vars
-	private IRegistry hatRegistry = (IRegistry) ServiceLocator.getService(HatRegistry.class);
-	private IRegistry mobRegistry = (IRegistry) ServiceLocator.getService(MobRegistry.class);
+	private IRegistry<UUID> hatRegistry = ServiceLocator.getService(HatRegistry.class);
+	private IRegistry<UUID> mobRegistry = ServiceLocator.getService(MobRegistry.class);
 	
-	private IEntityHelper entityUtil = (IEntityHelper) ServiceLocator.getService(IEntityHelper.class);
+	private IEntityHelper entityUtil = ServiceLocator.getService(IEntityHelper.class);
 	
 	//constructor
-	public PlayerInteractEntityEventCommand(Event event) {
+	public PlayerInteractEntityEventCommand(PlayerInteractEntityEvent event) {
 		super(event);
 	}
 	
@@ -31,66 +33,64 @@ public class PlayerInteractEntityEventCommand extends EventCommand {
 
 	//private
 	protected void onExecute(long elapsedMilliseconds) {
-		PlayerInteractEntityEvent e = (PlayerInteractEntityEvent) event;
-		
-		if (e.isCancelled()) {
+		if (event.isCancelled()) {
 			return;
 		}
 		
-		Player player = e.getPlayer();
-		Entity entity = e.getRightClicked();
-		String entityUuid = entity.getUniqueId().toString();
-		String uuid = player.getUniqueId().toString();
+		Player player = event.getPlayer();
+		Entity entity = event.getRightClicked();
+		UUID entityUuid = entity.getUniqueId();
+		UUID uuid = player.getUniqueId();
 		
-		// Is the player trying to /hat themselves (or another player)?
-		String hatUuid = (String) hatRegistry.getRegister(player.getUniqueId().toString());
-		if (hatUuid == null) {
+		if (!hatRegistry.hasRegister(uuid)) {
 			return;
 		}
+		
+		UUID hatUuid = hatRegistry.getRegister(uuid, UUID.class);
 		
 		// Need to make sure the entity isn't already a hat
 		if (mobRegistry.hasValue(entityUuid)) {
-			player.sendMessage(MessageType.ALREADY_HAT);
-			hatRegistry.setRegister(uuid, String.class, null);
+			player.sendMessage(LanguageUtil.getString(LanguageType.MOB_OWNED));
+			hatRegistry.removeRegister(uuid);
 			return;
 		}
 		
 		// Is the target a player or a mob?
 		if (entity instanceof Player) {
 			if (!CommandUtil.hasPermission(player, PermissionsType.PLAYER)) {
-				player.sendMessage(MessageType.NO_PLAYER);
-				hatRegistry.setRegister(uuid, String.class, null);
+				player.sendMessage(LanguageUtil.getString(LanguageType.INVALID_PERMISSIONS_HAT_TYPE));
+				hatRegistry.removeRegister(uuid);
 				return;
 			}
 			if (CommandUtil.hasPermission(entity, PermissionsType.IMMUNE)) {
-				player.sendMessage(MessageType.IMMUNE);
-				hatRegistry.setRegister(uuid, String.class, null);
+				player.sendMessage(LanguageUtil.getString(LanguageType.PLAYER_IMMUNE));
+				hatRegistry.removeRegister(uuid);
 				return;
 			}
 		} else {
-			if (!CommandUtil.hasPermission(player, PermissionsType.MOB + "." + entity.getType().toString().toLowerCase())) {
-				player.sendMessage(MessageType.NO_MOB);
-				hatRegistry.setRegister(uuid, String.class, null);
+			if (!CommandUtil.hasPermission(player, PermissionsType.MOB + "." + entity.getType().name().toLowerCase())) {
+				player.sendMessage(LanguageUtil.getString(LanguageType.INVALID_PERMISSIONS_HAT_TYPE));
+				hatRegistry.removeRegister(uuid);
 				return;
 			}
 		}
 		
-		hatRegistry.setRegister(uuid, String.class, null);
+		hatRegistry.removeRegister(uuid);
 		
 		if (uuid.equals(hatUuid)) {
-			mobRegistry.setRegister(uuid, String.class, entityUuid);
+			mobRegistry.setRegister(uuid, entityUuid);
 			entityUtil.removeAllPassengers(player);
 			entityUtil.addPassenger(player, entity);
 		} else {
 			Player hatPlayer = CommandUtil.getPlayerByUuid(hatUuid);
 			
 			// Need to make sure they're online
-			if (!hatPlayer.isOnline()) {
-				player.sendMessage(MessageType.OFFLINE);
+			if (hatPlayer == null) {
+				player.sendMessage(LanguageUtil.getString(LanguageType.PLAYER_OFFLINE));
 				return;
 			}
 			
-			mobRegistry.setRegister(hatUuid, String.class, entityUuid);
+			mobRegistry.setRegister(hatUuid, entityUuid);
 			entityUtil.removeAllPassengers(hatPlayer);
 			entityUtil.addPassenger(hatPlayer, entity);
 		}

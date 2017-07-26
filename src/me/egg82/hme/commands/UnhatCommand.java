@@ -1,6 +1,7 @@
 package me.egg82.hme.commands;
 
 import java.util.Map;
+import java.util.UUID;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -9,28 +10,34 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
-import ninja.egg82.events.CommandEvent;
+import me.egg82.hme.enums.LanguageType;
+import me.egg82.hme.enums.PermissionsType;
+import me.egg82.hme.exceptions.InventoryFullException;
+import me.egg82.hme.exceptions.PlayerImmuneException;
+import me.egg82.hme.reflection.light.ILightHelper;
+import me.egg82.hme.services.GlowRegistry;
+import me.egg82.hme.services.MobRegistry;
+import ninja.egg82.events.CompleteEventArgs;
+import ninja.egg82.events.ExceptionEventArgs;
 import ninja.egg82.patterns.IRegistry;
 import ninja.egg82.patterns.ServiceLocator;
 import ninja.egg82.plugin.commands.PluginCommand;
-import ninja.egg82.plugin.enums.SpigotCommandErrorType;
-import ninja.egg82.plugin.enums.SpigotMessageType;
+import ninja.egg82.plugin.enums.SpigotLanguageType;
+import ninja.egg82.plugin.exceptions.IncorrectCommandUsageException;
+import ninja.egg82.plugin.exceptions.InvalidPermissionsException;
+import ninja.egg82.plugin.exceptions.PlayerNotFoundException;
+import ninja.egg82.plugin.exceptions.SenderNotAllowedException;
 import ninja.egg82.plugin.reflection.entity.IEntityHelper;
 import ninja.egg82.plugin.utils.CommandUtil;
-import me.egg82.hme.enums.CommandErrorType;
-import me.egg82.hme.enums.MessageType;
-import me.egg82.hme.enums.PermissionsType;
-import me.egg82.hme.services.GlowRegistry;
-import me.egg82.hme.services.MobRegistry;
-import me.egg82.hme.util.ILightHelper;
+import ninja.egg82.plugin.utils.LanguageUtil;
 
 public class UnhatCommand extends PluginCommand {
 	//vars
-	private IRegistry glowRegistry = (IRegistry) ServiceLocator.getService(GlowRegistry.class);
-	private IRegistry mobRegistry = (IRegistry) ServiceLocator.getService(MobRegistry.class);
+	private IRegistry<UUID> glowRegistry = ServiceLocator.getService(GlowRegistry.class);
+	private IRegistry<UUID> mobRegistry = ServiceLocator.getService(MobRegistry.class);
 	
-	private ILightHelper lightHelper = (ILightHelper) ServiceLocator.getService(ILightHelper.class);
-	private IEntityHelper entityUtil = (IEntityHelper) ServiceLocator.getService(IEntityHelper.class);
+	private ILightHelper lightHelper = ServiceLocator.getService(ILightHelper.class);
+	private IEntityHelper entityUtil = ServiceLocator.getService(IEntityHelper.class);
 	
 	//constructor
 	public UnhatCommand(CommandSender sender, org.bukkit.command.Command command, String label, String[] args) {
@@ -42,74 +49,74 @@ public class UnhatCommand extends PluginCommand {
 	//private
 	protected void onExecute(long elapsedMilliseoncds) {
 		if (!CommandUtil.hasPermission(sender, PermissionsType.HAT)) {
-			sender.sendMessage(SpigotMessageType.NO_PERMISSIONS);
-			dispatch(CommandEvent.ERROR, SpigotCommandErrorType.NO_PERMISSIONS);
+			sender.sendMessage(LanguageUtil.getString(SpigotLanguageType.INVALID_PERMISSIONS));
+			onError().invoke(this, new ExceptionEventArgs<InvalidPermissionsException>(new InvalidPermissionsException(sender, PermissionsType.HAT)));
 			return;
 		}
 		if (!CommandUtil.isArrayOfAllowedLength(args, 0, 1)) {
-			sender.sendMessage(SpigotMessageType.INCORRECT_USAGE);
-			sender.getServer().dispatchCommand(sender, "help " + command.getName());
-			dispatch(CommandEvent.ERROR, SpigotCommandErrorType.INCORRECT_USAGE);
+			sender.sendMessage(LanguageUtil.getString(SpigotLanguageType.INCORRECT_COMMAND_USAGE));
+			sender.getServer().dispatchCommand(sender, "help unhat");
+			onError().invoke(this, new ExceptionEventArgs<IncorrectCommandUsageException>(new IncorrectCommandUsageException(sender, this, args)));
 			return;
 		}
 		if (!CommandUtil.isPlayer(sender)) {
-			sender.sendMessage(SpigotMessageType.CONSOLE_NOT_ALLOWED);
-			dispatch(CommandEvent.ERROR, SpigotCommandErrorType.CONSOLE_NOT_ALLOWED);
+			sender.sendMessage(LanguageUtil.getString(SpigotLanguageType.SENDER_NOT_ALLOWED));
+			onError().invoke(this, new ExceptionEventArgs<SenderNotAllowedException>(new SenderNotAllowedException(sender, this)));
 			return;
 		}
 		
 		Player player = (Player) sender;
-		String uuid = player.getUniqueId().toString();
+		UUID uuid = player.getUniqueId();
 		
 		if (args.length == 0) {
 			if (!removeBlockHat(player.getInventory())) {
-				sender.sendMessage(MessageType.NO_SPACE);
-				dispatch(CommandEvent.ERROR, CommandErrorType.NO_SPACE);
+				sender.sendMessage(LanguageUtil.getString(LanguageType.INVENTORY_FULL));
+				onError().invoke(this, new ExceptionEventArgs<InventoryFullException>(new InventoryFullException(player.getInventory(), player.getInventory().getHelmet())));
 				return;
 			}
 			
 			unhat(uuid, player);
 		} else {
 			if (!CommandUtil.hasPermission(sender, PermissionsType.OTHERS)) {
-				sender.sendMessage(SpigotMessageType.NO_PERMISSIONS);
-				dispatch(CommandEvent.ERROR, SpigotCommandErrorType.NO_PERMISSIONS);
+				sender.sendMessage(LanguageUtil.getString(SpigotLanguageType.INVALID_PERMISSIONS));
+				onError().invoke(this, new ExceptionEventArgs<InvalidPermissionsException>(new InvalidPermissionsException(sender, PermissionsType.OTHERS)));
 				return;
 			}
 			
 			Player other = CommandUtil.getPlayerByName(args[0]);
 			// Check if player exists
 			if (other == null) {
-				sender.sendMessage(SpigotMessageType.PLAYER_NOT_FOUND);
-				dispatch(CommandEvent.ERROR, SpigotCommandErrorType.PLAYER_NOT_FOUND);
+				sender.sendMessage(LanguageUtil.getString(SpigotLanguageType.PLAYER_NOT_FOUND));
+				onError().invoke(this, new ExceptionEventArgs<PlayerNotFoundException>(new PlayerNotFoundException(args[0])));
 				return;
 			}
 			// Is player immune?
 			if (CommandUtil.hasPermission(other, PermissionsType.IMMUNE)) {
-				sender.sendMessage(MessageType.IMMUNE);
-				dispatch(CommandEvent.ERROR, CommandErrorType.IMMUNE);
+				sender.sendMessage(LanguageUtil.getString(LanguageType.PLAYER_IMMUNE));
+				onError().invoke(this, new ExceptionEventArgs<PlayerImmuneException>(new PlayerImmuneException(other)));
 				return;
 			}
-			String otherUuid = other.getUniqueId().toString();
+			UUID otherUuid = other.getUniqueId();
 			
 			if (!removeBlockHat(other.getInventory())) {
-				sender.sendMessage(MessageType.NO_SPACE);
-				dispatch(CommandEvent.ERROR, CommandErrorType.NO_SPACE);
+				sender.sendMessage(LanguageUtil.getString(LanguageType.PLAYER_IMMUNE));
+				onError().invoke(this, new ExceptionEventArgs<InventoryFullException>(new InventoryFullException(other.getInventory(), other.getInventory().getHelmet())));
 				return;
 			}
 			
 			unhat(otherUuid, other);
 		}
 		
-		dispatch(CommandEvent.COMPLETE, null);
+		onComplete().invoke(this, CompleteEventArgs.EMPTY);
 	}
 	
 	protected void onUndo() {
 		
 	}
 	
-	private void unhat(String uuid, Player player) {
+	private void unhat(UUID uuid, Player player) {
 		entityUtil.removeAllPassengers(player);
-		mobRegistry.setRegister(uuid, String.class, null);
+		mobRegistry.removeRegister(uuid);
 		
 		if (glowRegistry.hasRegister(uuid)) {
 			Location loc = player.getLocation().clone();
@@ -118,7 +125,7 @@ public class UnhatCommand extends PluginCommand {
 			loc.setZ(loc.getBlockZ() + 0.5d);
 			lightHelper.removeLight(loc, false);
 			
-			glowRegistry.setRegister(uuid, Player.class, null);
+			glowRegistry.removeRegister(uuid);
 		}
 		
 		sender.sendMessage("No more hat :(");

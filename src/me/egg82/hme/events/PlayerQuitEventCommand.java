@@ -1,42 +1,58 @@
 package me.egg82.hme.events;
 
+import java.util.UUID;
+
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 import ninja.egg82.patterns.IRegistry;
 import ninja.egg82.patterns.ServiceLocator;
 import ninja.egg82.plugin.commands.EventCommand;
+import ninja.egg82.plugin.reflection.entity.IEntityHelper;
+import ninja.egg82.plugin.utils.CommandUtil;
+import me.egg82.hme.reflection.light.ILightHelper;
 import me.egg82.hme.services.GlowRegistry;
-import me.egg82.hme.util.ILightHelper;
+import me.egg82.hme.services.MobRegistry;
 
-public class PlayerQuitEventCommand extends EventCommand {
+public class PlayerQuitEventCommand extends EventCommand<PlayerQuitEvent> {
 	//vars
-	private IRegistry glowRegistry = (IRegistry) ServiceLocator.getService(GlowRegistry.class);
-	private ILightHelper lightHelper = (ILightHelper) ServiceLocator.getService(ILightHelper.class);
+	private IRegistry<UUID> mobRegistry = ServiceLocator.getService(MobRegistry.class);
+	private IRegistry<UUID> glowRegistry = ServiceLocator.getService(GlowRegistry.class);
+	
+	private IEntityHelper entityUtil = ServiceLocator.getService(IEntityHelper.class);
+	private ILightHelper lightHelper = ServiceLocator.getService(ILightHelper.class);
 	
 	//constructor
-	public PlayerQuitEventCommand(Event e) {
-		super(e);
+	public PlayerQuitEventCommand(PlayerQuitEvent event) {
+		super(event);
 	}
 	
 	//public
 	
 	//private
 	protected void onExecute(long elapsedMilliseconds) {
-		PlayerQuitEvent e = (PlayerQuitEvent) event;
-		
-		String uuid = e.getPlayer().getUniqueId().toString();
+		Player player = event.getPlayer();
+		UUID uuid = player.getUniqueId();
 		
 		if (glowRegistry.hasRegister(uuid)) {
-			Location loc = e.getPlayer().getLocation().clone();
+			Location loc = player.getLocation().clone();
 			loc.setX(loc.getBlockX() + 0.5d);
 			loc.setY(loc.getBlockY() + 1.0d);
 			loc.setZ(loc.getBlockZ() + 0.5d);
 			
 			lightHelper.removeLight(loc, false);
-			glowRegistry.setRegister(uuid, Player.class, null);
+			glowRegistry.removeRegister(uuid);
+		}
+		
+		if (mobRegistry.hasRegister(uuid)) {
+			entityUtil.removeAllPassengers(player);
+			mobRegistry.removeRegister(uuid);
+		}
+		UUID bottomUuid = mobRegistry.getKey(uuid);
+		if (bottomUuid != null) {
+			entityUtil.removePassenger(CommandUtil.getPlayerByUuid(bottomUuid), player);
+			mobRegistry.removeRegister(bottomUuid);
 		}
 	}
 }

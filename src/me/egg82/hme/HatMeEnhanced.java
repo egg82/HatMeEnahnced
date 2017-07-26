@@ -3,10 +3,11 @@ package me.egg82.hme;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Arrays;
+import java.util.logging.Level;
 
 import javax.swing.Timer;
 
-import org.bstats.Metrics;
+import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -19,15 +20,23 @@ import ninja.egg82.patterns.IRegistry;
 import ninja.egg82.patterns.ServiceLocator;
 import ninja.egg82.plugin.BasePlugin;
 import ninja.egg82.plugin.handlers.PermissionsManager;
+import ninja.egg82.plugin.reflection.exceptionHandlers.GameAnalyticsExceptionHandler;
+import ninja.egg82.plugin.reflection.exceptionHandlers.IExceptionHandler;
+import ninja.egg82.plugin.reflection.exceptionHandlers.RollbarExceptionHandler;
+import ninja.egg82.plugin.reflection.exceptionHandlers.builders.GameAnalyticsBuilder;
+import ninja.egg82.plugin.reflection.exceptionHandlers.builders.RollbarBuilder;
+import ninja.egg82.plugin.services.LanguageRegistry;
 import ninja.egg82.plugin.utils.SpigotReflectUtil;
 import ninja.egg82.plugin.utils.VersionUtil;
 import ninja.egg82.startup.InitRegistry;
 import ninja.egg82.utils.ReflectUtil;
+import me.egg82.hme.enums.LanguageType;
 import me.egg82.hme.enums.PermissionsType;
+import me.egg82.hme.reflection.light.ILightHelper;
+import me.egg82.hme.reflection.light.LightAPIHelper;
+import me.egg82.hme.reflection.light.NullLightHelper;
 import me.egg82.hme.services.GlowMaterialRegistry;
-import me.egg82.hme.util.ILightHelper;
-import me.egg82.hme.util.LightAPIHelper;
-import me.egg82.hme.util.NullLightHelper;
+import me.egg82.hme.services.MaterialRegistry;
 import net.gravitydevelopment.updater.Updater;
 import net.gravitydevelopment.updater.Updater.UpdateResult;
 import net.gravitydevelopment.updater.Updater.UpdateType;
@@ -37,15 +46,28 @@ public class HatMeEnhanced extends BasePlugin {
 	private Metrics metrics = null;
 	
 	private Timer updateTimer = null;
+	private Timer exceptionHandlerTimer = null;
 	
 	private int numCommands = 0;
 	private int numEvents = 0;
 	private int numPermissions = 0;
 	private int numTicks = 0;
 	
+	private IExceptionHandler exceptionHandler = null;
+	
 	//constructor
 	public HatMeEnhanced() {
+		super();
 		
+		getLogger().setLevel(Level.WARNING);
+		IExceptionHandler oldExceptionHandler = ServiceLocator.getService(IExceptionHandler.class);
+		ServiceLocator.removeServices(IExceptionHandler.class);
+		
+		ServiceLocator.provideService(RollbarExceptionHandler.class, false);
+		exceptionHandler = ServiceLocator.getService(IExceptionHandler.class);
+		exceptionHandler.connect(new RollbarBuilder("455ef15583a54d6995c5dc1a64861a6c", "production"));
+		exceptionHandler.setUnsentExceptions(oldExceptionHandler.getUnsentExceptions());
+		exceptionHandler.setUnsentLogs(oldExceptionHandler.getUnsentLogs());
 	}
 	
 	//public
@@ -64,7 +86,10 @@ public class HatMeEnhanced extends BasePlugin {
 			ServiceLocator.provideService(NullLightHelper.class);
 		}
 		
+		populateLanguage();
+		
 		updateTimer = new Timer(24 * 60 * 60 * 1000, onUpdateTimer);
+		exceptionHandlerTimer = new Timer(60 * 60 * 1000, onExceptionHandlerTimer);
 	}
 	@SuppressWarnings("deprecation")
 	public void onEnable() {
@@ -73,37 +98,31 @@ public class HatMeEnhanced extends BasePlugin {
 		try {
 			metrics = new Metrics(this);
 		} catch (Exception ex) {
-			info(ChatColor.YELLOW + "[TrollCommands++] WARNING: Connection to metrics server could not be established. This affects nothing for server owners, but it does make me sad :(");
+			info(ChatColor.YELLOW + "[HatMeEnhanced] WARNING: Connection to metrics server could not be established. This affects nothing for server owners, but it does make me sad :(");
 		}
 		
 		if (metrics != null) {
-			metrics.addCustomChart(new Metrics.SingleLineChart("hats") {
-				@Override
-				public int getValue() {
-					int numHats = 0;
-					for (Player p : Bukkit.getServer().getOnlinePlayers()) {
-						ItemStack head = p.getInventory().getHelmet();
-						if (head != null && head.getAmount() > 0 && head.getType() != Material.AIR) {
-							numHats++;
-						}
+			metrics.addCustomChart(new Metrics.SingleLineChart("hats", () -> {
+				int numHats = 0;
+				for (Player p : Bukkit.getServer().getOnlinePlayers()) {
+					ItemStack head = p.getInventory().getHelmet();
+					if (head != null && head.getAmount() > 0 && head.getType() != Material.AIR) {
+						numHats++;
 					}
-					return numHats;
 				}
-			});
-			metrics.addCustomChart(new Metrics.SingleLineChart("glowing_hats") {
-				@Override
-				public int getValue() {
-					IRegistry glowMaterialRegistry = (IRegistry) ServiceLocator.getService(GlowMaterialRegistry.class);
-					int numHats = 0;
-					for (Player p : Bukkit.getServer().getOnlinePlayers()) {
-						ItemStack head = p.getInventory().getHelmet();
-						if (head != null && head.getAmount() > 0 && glowMaterialRegistry.hasRegister(head.getType().name().toLowerCase())) {
-							numHats++;
-						}
+				return numHats;
+			}));
+			metrics.addCustomChart(new Metrics.SingleLineChart("glowing_hats",  () -> {
+				IRegistry<String> glowMaterialRegistry = ServiceLocator.getService(GlowMaterialRegistry.class);
+				int numHats = 0;
+				for (Player p : Bukkit.getServer().getOnlinePlayers()) {
+					ItemStack head = p.getInventory().getHelmet();
+					if (head != null && head.getAmount() > 0 && glowMaterialRegistry.hasRegister(head.getType().name())) {
+						numHats++;
 					}
-					return numHats;
 				}
-			});
+				return numHats;
+			}));
 		}
 		
 		numCommands = SpigotReflectUtil.addCommandsFromPackage("me.egg82.hme.commands");
@@ -111,22 +130,26 @@ public class HatMeEnhanced extends BasePlugin {
 		numPermissions = SpigotReflectUtil.addPermissionsFromClass(PermissionsType.class);
 		numTicks = SpigotReflectUtil.addTicksFromPackage("me.egg82.hme.ticks");
 		
-		PermissionsManager permissionsManager = (PermissionsManager) ServiceLocator.getService(PermissionsManager.class);
+		PermissionsManager permissionsManager = ServiceLocator.getService(PermissionsManager.class);
+		IRegistry<String> materialRegistry = ServiceLocator.getService(MaterialRegistry.class);
 		
 		Object[] enums = ReflectUtil.getStaticFields(Material.class);
 		Material[] materials = Arrays.copyOf(enums, enums.length, Material[].class);
 		for (Material m : materials) {
 			if (m != null) {
 				permissionsManager.addPermission("hme.hat." + Integer.toString(m.getId()));
-				permissionsManager.addPermission("hme.hat." + m.toString().toLowerCase());
+				permissionsManager.addPermission("hme.hat." + m.name().toLowerCase());
+				
+				materialRegistry.setRegister(m.name(), m);
+				materialRegistry.setRegister(Integer.toString(m.getId()), m);
 			}
 		}
 		
 		enums = ReflectUtil.getStaticFields(EntityType.class);
 		EntityType[] entityTypes = Arrays.copyOf(enums, enums.length, EntityType[].class);
 		for (EntityType e : entityTypes) {
-			if (e != null) {
-				permissionsManager.addPermission("hme.mob." + e.toString().toLowerCase());
+			if (e != null && e.isAlive()) {
+				permissionsManager.addPermission("hme.mob." + e.name().toLowerCase());
 			}
 		}
 		
@@ -134,6 +157,9 @@ public class HatMeEnhanced extends BasePlugin {
 		checkUpdate();
 		updateTimer.setRepeats(true);
 		updateTimer.start();
+		checkExceptionLimitReached();
+		exceptionHandlerTimer.setRepeats(true);
+		exceptionHandlerTimer.start();
 	}
 	public void onDisable() {
 		super.onDisable();
@@ -148,6 +174,7 @@ public class HatMeEnhanced extends BasePlugin {
 	//private
 	private ActionListener onUpdateTimer = new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
+			exceptionHandler.addThread(Thread.currentThread());
 			checkUpdate();
 		}
 	};
@@ -167,7 +194,25 @@ public class HatMeEnhanced extends BasePlugin {
 				}
 			}
 			
-			Bukkit.getConsoleSender().sendMessage(ChatColor.GREEN + "--== " + ChatColor.YELLOW + "HatMeEnhanced UPDATE AVAILABLE (Latest: " + latestVersion + " Current: " + currentVersion + ") " + ChatColor.GREEN + " ==--");
+			warning(ChatColor.GREEN + "--== " + ChatColor.YELLOW + "HatMeEnhanced UPDATE AVAILABLE (Latest: " + latestVersion + " Current: " + currentVersion + ") " + ChatColor.GREEN + " ==--");
+		}
+	}
+	
+	private ActionListener onExceptionHandlerTimer = new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+			checkExceptionLimitReached();
+		}
+	};
+	private void checkExceptionLimitReached() {
+		if (exceptionHandler.isLimitReached()) {
+			IExceptionHandler oldExceptionHandler = ServiceLocator.getService(IExceptionHandler.class);
+			ServiceLocator.removeServices(IExceptionHandler.class);
+			
+			ServiceLocator.provideService(GameAnalyticsExceptionHandler.class, false);
+			exceptionHandler = ServiceLocator.getService(IExceptionHandler.class);
+			exceptionHandler.connect(new GameAnalyticsBuilder("ffe3c97598f4a511d29e5aa4a086d99b", "118e0c9a4258a412624ad0f9104cadf6216c595a"));
+			exceptionHandler.setUnsentExceptions(oldExceptionHandler.getUnsentExceptions());
+			exceptionHandler.setUnsentLogs(oldExceptionHandler.getUnsentLogs());
 		}
 	}
 	
@@ -183,5 +228,16 @@ public class HatMeEnhanced extends BasePlugin {
 	}
 	private void disableMessage() {
 		info(ChatColor.GREEN + "--== " + ChatColor.LIGHT_PURPLE + "HatMeEnhanced Disabled" + ChatColor.GREEN + " ==--");
+	}
+	
+	private void populateLanguage() {
+		IRegistry<String> languageRegistry = ServiceLocator.getService(LanguageRegistry.class);
+		
+		languageRegistry.setRegister(LanguageType.HAT_CANCEL, ChatColor.YELLOW + "Mob/Player hat canceled. Please use /hat with an open hand to start again.");
+		languageRegistry.setRegister(LanguageType.INVALID_PERMISSIONS_HAT_TYPE, ChatColor.RED + "You don't have permissions to use that type of hat!");
+		languageRegistry.setRegister(LanguageType.INVENTORY_FULL, ChatColor.RED + "You don't have any space left in your inventory!");
+		languageRegistry.setRegister(LanguageType.MOB_OWNED, ChatColor.RED + "That mob/player is already someone else's hat!");
+		languageRegistry.setRegister(LanguageType.PLAYER_IMMUNE, ChatColor.RED + "Player is immune.");
+		languageRegistry.setRegister(LanguageType.PLAYER_OFFLINE, ChatColor.RED + "Player is no longer online.");
 	}
 }

@@ -1,6 +1,7 @@
 package me.egg82.hme.events;
 
-import org.bukkit.event.Event;
+import java.util.UUID;
+
 import org.bukkit.event.entity.EntityTargetEvent;
 
 import me.egg82.hme.services.MobRegistry;
@@ -8,12 +9,12 @@ import ninja.egg82.patterns.IRegistry;
 import ninja.egg82.patterns.ServiceLocator;
 import ninja.egg82.plugin.commands.EventCommand;
 
-public class EntityTargetEventCommand extends EventCommand {
+public class EntityTargetEventCommand extends EventCommand<EntityTargetEvent> {
 	//vars
-	private IRegistry mobRegistry = (IRegistry) ServiceLocator.getService(MobRegistry.class);
+	private IRegistry<UUID> mobRegistry = ServiceLocator.getService(MobRegistry.class);
 	
 	//constructor
-	public EntityTargetEventCommand(Event event) {
+	public EntityTargetEventCommand(EntityTargetEvent event) {
 		super(event);
 	}
 	
@@ -21,17 +22,20 @@ public class EntityTargetEventCommand extends EventCommand {
 
 	//private
 	protected void onExecute(long elapsedMilliseconds) {
-		EntityTargetEvent e = (EntityTargetEvent) event;
-		
-		if (e.isCancelled()) {
+		if (event.isCancelled()) {
 			return;
 		}
 		
-		String entityUuid = e.getEntity().getUniqueId().toString();
-		String targetUuid = e.getTarget().getUniqueId().toString();
+		if (event.getTarget() == null) {
+			return;
+		}
 		
-		if (entityUuid.equals(mobRegistry.getRegister(targetUuid))) {
-			e.setCancelled(true);
+		UUID entityUuid = event.getEntity().getUniqueId();
+		UUID targetUuid = event.getTarget().getUniqueId();
+		
+		// Your own hat can't target you!
+		if (entityUuid.equals(mobRegistry.getRegister(targetUuid, UUID.class))) {
+			event.setCancelled(true);
 		}
 	}
 }
