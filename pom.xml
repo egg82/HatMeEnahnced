@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>ninja.egg82.plugins</groupId>
   <artifactId>HatMeEnhanced</artifactId>
-  <version>4.1.17</version>
+  <version>4.1.20</version>
   <name>HatMeEnhanced</name>
   <build>
     <sourceDirectory>src</sourceDirectory>
@@ -31,6 +31,7 @@
               <goal>shade</goal>
             </goals>
             <configuration>
+              <minimizeJar>true</minimizeJar>
               <filters>
                 <filter>
                   <artifact>*:*</artifact>
@@ -42,8 +43,25 @@
                     <exclude>**/*.txt</exclude>
                   </excludes>
                 </filter>
+                <filter>
+                  <artifact>ninja.egg82.lib:exception-lib</artifact>
+                  <includes>
+                    <include>ninja/egg82/**</include>
+                  </includes>
+                </filter>
+                <filter>
+                  <artifact>ninja.egg82.lib:plugin-lib</artifact>
+                  <includes>
+                    <include>ninja/egg82/**</include>
+                  </includes>
+                </filter>
+                <filter>
+                  <artifact>ninja.egg82.lib:egg82-lib</artifact>
+                  <includes>
+                    <include>ninja/egg82/**</include>
+                  </includes>
+                </filter>
               </filters>
-              <minimizeJar>false</minimizeJar>
               <relocations>
                 <relocation>
                   <pattern>ninja.egg82</pattern>
@@ -88,27 +106,32 @@
       <artifactId>bstats-bukkit</artifactId>
       <version>1.2</version>
     </dependency>
-  	<dependency>
+    <dependency>
       <groupId>org.spigotmc</groupId>
       <artifactId>spigot-api</artifactId>
-      <version>1.12-R0.1-SNAPSHOT</version>
+      <version>1.12.1-R0.1-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.bukkit</groupId>
       <artifactId>bukkit</artifactId>
-      <version>1.12-R0.1-SNAPSHOT</version>
+      <version>1.12.1-R0.1-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>ninja.egg82.lib</groupId>
       <artifactId>egg82-lib</artifactId>
-      <version>1.5.15</version>
+      <version>[0.0.0,)</version>
     </dependency>
     <dependency>
       <groupId>ninja.egg82.lib</groupId>
-      <artifactId>spigot-lib</artifactId>
-      <version>1.7.29</version>
+      <artifactId>plugin-lib</artifactId>
+      <version>[0.0.0,)</version>
+    </dependency>
+    <dependency>
+      <groupId>ninja.egg82.lib</groupId>
+      <artifactId>exception-lib</artifactId>
+      <version>[0.0.0,)</version>
     </dependency>
     <dependency>
       <groupId>net.gravitydevelopment.updater</groupId>
@@ -122,6 +145,6 @@
       <scope>provided</scope>
     </dependency>
   </dependencies>
+  <description>HME for Bukkit/Spigot</description>
   <url>https://www.egg82.ninja</url>
-  <description>HME for Spigot/Bukkit</description>
 </project>

@@ -42,7 +42,7 @@ public class PlayerInteractEntityEventCommand extends EventCommand<PlayerInterac
 		UUID entityUuid = entity.getUniqueId();
 		UUID uuid = player.getUniqueId();
 		
-		if (!hatRegistry.hasRegister(uuid)) {
+		if (!hatRegistry.hasRegister(uuid) || uuid.equals(entityUuid)) {
 			return;
 		}
 		

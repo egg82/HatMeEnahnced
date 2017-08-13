@@ -2,7 +2,11 @@ package me.egg82.hme;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.UUID;
 import java.util.logging.Level;
 
 import javax.swing.Timer;
@@ -16,19 +20,20 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.PluginManager;
 
+import ninja.egg82.exceptionHandlers.GameAnalyticsExceptionHandler;
+import ninja.egg82.exceptionHandlers.IExceptionHandler;
+import ninja.egg82.exceptionHandlers.RollbarExceptionHandler;
+import ninja.egg82.exceptionHandlers.builders.GameAnalyticsBuilder;
+import ninja.egg82.exceptionHandlers.builders.RollbarBuilder;
 import ninja.egg82.patterns.IRegistry;
 import ninja.egg82.patterns.ServiceLocator;
 import ninja.egg82.plugin.BasePlugin;
 import ninja.egg82.plugin.handlers.PermissionsManager;
-import ninja.egg82.plugin.reflection.exceptionHandlers.GameAnalyticsExceptionHandler;
-import ninja.egg82.plugin.reflection.exceptionHandlers.IExceptionHandler;
-import ninja.egg82.plugin.reflection.exceptionHandlers.RollbarExceptionHandler;
-import ninja.egg82.plugin.reflection.exceptionHandlers.builders.GameAnalyticsBuilder;
-import ninja.egg82.plugin.reflection.exceptionHandlers.builders.RollbarBuilder;
 import ninja.egg82.plugin.services.LanguageRegistry;
 import ninja.egg82.plugin.utils.SpigotReflectUtil;
 import ninja.egg82.plugin.utils.VersionUtil;
 import ninja.egg82.startup.InitRegistry;
+import ninja.egg82.utils.FileUtil;
 import ninja.egg82.utils.ReflectUtil;
 import me.egg82.hme.enums.LanguageType;
 import me.egg82.hme.enums.PermissionsType;
@@ -54,10 +59,17 @@ public class HatMeEnhanced extends BasePlugin {
 	private int numTicks = 0;
 	
 	private IExceptionHandler exceptionHandler = null;
+	private String version = getDescription().getVersion();
+	private String userId = Bukkit.getServerId().trim();
 	
 	//constructor
 	public HatMeEnhanced() {
 		super();
+		
+		if (userId.isEmpty() || userId.equalsIgnoreCase("unnamed") || userId.equalsIgnoreCase("unknown") || userId.equalsIgnoreCase("default")) {
+			userId = UUID.randomUUID().toString();
+			writeProperties();
+		}
 		
 		getLogger().setLevel(Level.WARNING);
 		IExceptionHandler oldExceptionHandler = ServiceLocator.getService(IExceptionHandler.class);
@@ -65,7 +77,8 @@ public class HatMeEnhanced extends BasePlugin {
 		
 		ServiceLocator.provideService(RollbarExceptionHandler.class, false);
 		exceptionHandler = ServiceLocator.getService(IExceptionHandler.class);
-		exceptionHandler.connect(new RollbarBuilder("455ef15583a54d6995c5dc1a64861a6c", "production"));
+		oldExceptionHandler.disconnect();
+		exceptionHandler.connect(new RollbarBuilder("455ef15583a54d6995c5dc1a64861a6c", "production", version, userId));
 		exceptionHandler.setUnsentExceptions(oldExceptionHandler.getUnsentExceptions());
 		exceptionHandler.setUnsentLogs(oldExceptionHandler.getUnsentLogs());
 	}
@@ -210,7 +223,8 @@ public class HatMeEnhanced extends BasePlugin {
 			
 			ServiceLocator.provideService(GameAnalyticsExceptionHandler.class, false);
 			exceptionHandler = ServiceLocator.getService(IExceptionHandler.class);
-			exceptionHandler.connect(new GameAnalyticsBuilder("ffe3c97598f4a511d29e5aa4a086d99b", "118e0c9a4258a412624ad0f9104cadf6216c595a"));
+			oldExceptionHandler.disconnect();
+			exceptionHandler.connect(new GameAnalyticsBuilder("ffe3c97598f4a511d29e5aa4a086d99b", "118e0c9a4258a412624ad0f9104cadf6216c595a", version, userId));
 			exceptionHandler.setUnsentExceptions(oldExceptionHandler.getUnsentExceptions());
 			exceptionHandler.setUnsentLogs(oldExceptionHandler.getUnsentLogs());
 		}
@@ -239,5 +253,45 @@ public class HatMeEnhanced extends BasePlugin {
 		languageRegistry.setRegister(LanguageType.MOB_OWNED, ChatColor.RED + "That mob/player is already someone else's hat!");
 		languageRegistry.setRegister(LanguageType.PLAYER_IMMUNE, ChatColor.RED + "Player is immune.");
 		languageRegistry.setRegister(LanguageType.PLAYER_OFFLINE, ChatColor.RED + "Player is no longer online.");
+	}
+	
+	private void writeProperties() {
+		File propertiesFile = new File(Bukkit.getWorldContainer(), "server.properties");
+		String path = propertiesFile.getAbsolutePath();
+		
+		if (!FileUtil.pathExists(path) || !FileUtil.pathIsFile(path)) {
+			return;
+		}
+		
+		try {
+			FileUtil.open(path);
+			
+			String[] lines = toString(FileUtil.read(path, 0L), Charset.forName("UTF-8")).replaceAll("\r", "").split("\n");
+			boolean found = false;
+			for (int i = 0; i < lines.length; i++) {
+				if (lines[i].trim().startsWith("server-id=")) {
+					found = true;
+					lines[i] = "server-id=" + userId;
+				}
+			}
+			if (!found) {
+				ArrayList<String> temp = new ArrayList<String>(Arrays.asList(lines));
+				temp.add("server-id=" + userId);
+				lines = temp.toArray(new String[0]);
+			}
+			
+			FileUtil.erase(path);
+			FileUtil.write(path, toBytes(String.join(FileUtil.LINE_SEPARATOR, lines), Charset.forName("UTF-8")), 0L);
+			FileUtil.close(path);
+		} catch (Exception ex) {
+			
+		}
+	}
+	
+	private byte[] toBytes(String input, Charset enc) {
+		return input.getBytes(enc);
+	}
+	private String toString(byte[] input, Charset enc) {
+		return new String(input, enc);
 	}
 }

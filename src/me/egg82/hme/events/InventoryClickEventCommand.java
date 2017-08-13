@@ -6,6 +6,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
@@ -35,11 +36,13 @@ public class InventoryClickEventCommand extends EventCommand<InventoryClickEvent
 			return;
 		}
 		
-		if (event.getClickedInventory() == null || event.getClickedInventory().getType() != InventoryType.PLAYER) {
+		Inventory clicked = event.getClickedInventory();
+		
+		if (clicked == null || clicked.getType() != InventoryType.PLAYER) {
 			return;
 		}
 		
-		PlayerInventory inv = (PlayerInventory) event.getClickedInventory();
+		PlayerInventory inv = (PlayerInventory) clicked;
 		ItemStack helmet = inv.getHelmet();
 		Player player = (Player) inv.getHolder();
 		UUID uuid = player.getUniqueId();
