@@ -28,15 +28,21 @@ import ninja.egg82.exceptionHandlers.builders.RollbarBuilder;
 import ninja.egg82.patterns.IRegistry;
 import ninja.egg82.patterns.ServiceLocator;
 import ninja.egg82.plugin.BasePlugin;
+import ninja.egg82.plugin.enums.BukkitInitType;
+import ninja.egg82.plugin.handlers.CommandHandler;
+import ninja.egg82.plugin.handlers.EventListener;
+import ninja.egg82.plugin.handlers.IMessageHandler;
 import ninja.egg82.plugin.handlers.PermissionsManager;
+import ninja.egg82.plugin.handlers.TickHandler;
 import ninja.egg82.plugin.services.LanguageRegistry;
-import ninja.egg82.plugin.utils.SpigotReflectUtil;
+import ninja.egg82.plugin.utils.BukkitReflectUtil;
 import ninja.egg82.plugin.utils.VersionUtil;
 import ninja.egg82.startup.InitRegistry;
 import ninja.egg82.utils.FileUtil;
 import ninja.egg82.utils.ReflectUtil;
 import me.egg82.hme.enums.LanguageType;
 import me.egg82.hme.enums.PermissionsType;
+import me.egg82.hme.reflection.light.FAWELightHelper;
 import me.egg82.hme.reflection.light.ILightHelper;
 import me.egg82.hme.reflection.light.LightAPIHelper;
 import me.egg82.hme.reflection.light.NullLightHelper;
@@ -53,6 +59,7 @@ public class HatMeEnhanced extends BasePlugin {
 	private Timer updateTimer = null;
 	private Timer exceptionHandlerTimer = null;
 	
+	private int numMessages = 0;
 	private int numCommands = 0;
 	private int numEvents = 0;
 	private int numPermissions = 0;
@@ -87,15 +94,18 @@ public class HatMeEnhanced extends BasePlugin {
 	public void onLoad() {
 		super.onLoad();
 		
-		SpigotReflectUtil.addServicesFromPackage("me.egg82.hme.services");
+		BukkitReflectUtil.addServicesFromPackage("me.egg82.hme.services");
 		
 		PluginManager manager = getServer().getPluginManager();
 		
-		if (manager.getPlugin("LightAPI") != null) {
-			info(ChatColor.GREEN + "[HatMeEnhanced] Enabling support for LightAPI.");
+		if (manager.getPlugin("FastAsyncWorldEdit") != null) {
+			printInfo(ChatColor.GREEN + "[HatMeEnhanced] Enabling support for FAWE.");
+			ServiceLocator.provideService(FAWELightHelper.class);
+		} else if (manager.getPlugin("LightAPI") != null) {
+			printInfo(ChatColor.GREEN + "[HatMeEnhanced] Enabling support for LightAPI.");
 			ServiceLocator.provideService(LightAPIHelper.class);
 		} else {
-			warning(ChatColor.RED + "[HatMeEnhanced] LightAPI was not found. Lights won't appear with blocks that light up.");
+			printWarning(ChatColor.RED + "[HatMeEnhanced] LightAPI was not found. Lights won't appear with blocks that light up.");
 			ServiceLocator.provideService(NullLightHelper.class);
 		}
 		
@@ -111,7 +121,7 @@ public class HatMeEnhanced extends BasePlugin {
 		try {
 			metrics = new Metrics(this);
 		} catch (Exception ex) {
-			info(ChatColor.YELLOW + "[HatMeEnhanced] WARNING: Connection to metrics server could not be established. This affects nothing for server owners, but it does make me sad :(");
+			printInfo(ChatColor.YELLOW + "[HatMeEnhanced] WARNING: Connection to metrics server could not be established. This affects nothing for server owners, but it does make me sad :(");
 		}
 		
 		if (metrics != null) {
@@ -138,10 +148,11 @@ public class HatMeEnhanced extends BasePlugin {
 			}));
 		}
 		
-		numCommands = SpigotReflectUtil.addCommandsFromPackage("me.egg82.hme.commands");
-		numEvents = SpigotReflectUtil.addEventsFromPackage("me.egg82.hme.events");
-		numPermissions = SpigotReflectUtil.addPermissionsFromClass(PermissionsType.class);
-		numTicks = SpigotReflectUtil.addTicksFromPackage("me.egg82.hme.ticks");
+		numMessages = ServiceLocator.getService(IMessageHandler.class).addMessagesFromPackage("me.egg82.hme.messages");
+		numCommands = ServiceLocator.getService(CommandHandler.class).addCommandsFromPackage("me.egg82.hme.commands", BukkitReflectUtil.getCommandMapFromPackage("me.egg82.hme.commands", false, null, "Command"), false);
+		numEvents = ServiceLocator.getService(EventListener.class).addEventsFromPackage("me.egg82.hme.events");
+		numPermissions = ServiceLocator.getService(PermissionsManager.class).addPermissionsFromClass(PermissionsType.class);
+		numTicks = ServiceLocator.getService(TickHandler.class).addTicksFromPackage("me.egg82.hme.ticks");
 		
 		PermissionsManager permissionsManager = ServiceLocator.getService(PermissionsManager.class);
 		IRegistry<String> materialRegistry = ServiceLocator.getService(MaterialRegistry.class);
@@ -180,7 +191,7 @@ public class HatMeEnhanced extends BasePlugin {
 		ILightHelper lightHelper = (ILightHelper) ServiceLocator.getService(ILightHelper.class);
 		lightHelper.removeAllLights();
 		
-		SpigotReflectUtil.clearAll();
+		BukkitReflectUtil.clearAll();
 		disableMessage();
 	}
 	
@@ -189,6 +200,7 @@ public class HatMeEnhanced extends BasePlugin {
 		public void actionPerformed(ActionEvent e) {
 			exceptionHandler.addThread(Thread.currentThread());
 			checkUpdate();
+			exceptionHandler.removeThread(Thread.currentThread());
 		}
 	};
 	private void checkUpdate() {
@@ -207,7 +219,7 @@ public class HatMeEnhanced extends BasePlugin {
 				}
 			}
 			
-			warning(ChatColor.GREEN + "--== " + ChatColor.YELLOW + "HatMeEnhanced UPDATE AVAILABLE (Latest: " + latestVersion + " Current: " + currentVersion + ") " + ChatColor.GREEN + " ==--");
+			printWarning(ChatColor.GREEN + "--== " + ChatColor.YELLOW + "HatMeEnhanced UPDATE AVAILABLE (Latest: " + latestVersion + " Current: " + currentVersion + ") " + ChatColor.GREEN + " ==--");
 		}
 	}
 	
@@ -231,17 +243,17 @@ public class HatMeEnhanced extends BasePlugin {
 	}
 	
 	private void enableMessage() {
-		info(ChatColor.YELLOW + " _   _       _  ___  ___     _____      _                              _ ");
-		info(ChatColor.YELLOW + "| | | |     | | |  \\/  |    |  ___|    | |                            | |");
-		info(ChatColor.YELLOW + "| |_| | __ _| |_| .  . | ___| |__ _ __ | |__   __ _ _ __   ___ ___  __| |");
-		info(ChatColor.YELLOW + "|  _  |/ _` | __| |\\/| |/ _ |  __| '_ \\| '_ \\ / _` | '_ \\ / __/ _ \\/ _` |");
-		info(ChatColor.YELLOW + "| | | | (_| | |_| |  | |  __| |__| | | | | | | (_| | | | | (_|  __| (_| |");
-		info(ChatColor.YELLOW + "\\_| |_/\\__,_|\\__\\_|  |_/\\___\\____|_| |_|_| |_|\\__,_|_| |_|\\___\\___|\\__,_|");
-		info(ChatColor.GREEN + "[Version " + getDescription().getVersion() + "] " + ChatColor.RED + numCommands + " commands " + ChatColor.LIGHT_PURPLE + numEvents + " events " + ChatColor.WHITE + numPermissions + " permissions " + ChatColor.YELLOW + numTicks + " tick handlers");
-		info(ChatColor.WHITE + "[HatMeEnhanced] " + ChatColor.GRAY + "Attempting to load compatibility with Bukkit version " + ((InitRegistry) ServiceLocator.getService(InitRegistry.class)).getRegister("game.version"));
+		printInfo(ChatColor.YELLOW + " _   _       _  ___  ___     _____      _                              _ ");
+		printInfo(ChatColor.YELLOW + "| | | |     | | |  \\/  |    |  ___|    | |                            | |");
+		printInfo(ChatColor.YELLOW + "| |_| | __ _| |_| .  . | ___| |__ _ __ | |__   __ _ _ __   ___ ___  __| |");
+		printInfo(ChatColor.YELLOW + "|  _  |/ _` | __| |\\/| |/ _ |  __| '_ \\| '_ \\ / _` | '_ \\ / __/ _ \\/ _` |");
+		printInfo(ChatColor.YELLOW + "| | | | (_| | |_| |  | |  __| |__| | | | | | | (_| | | | | (_|  __| (_| |");
+		printInfo(ChatColor.YELLOW + "\\_| |_/\\__,_|\\__\\_|  |_/\\___\\____|_| |_|_| |_|\\__,_|_| |_|\\___\\___|\\__,_|");
+		printInfo(ChatColor.GREEN + "[Version " + getDescription().getVersion() + "] " + ChatColor.RED + numCommands + " commands " + ChatColor.LIGHT_PURPLE + numEvents + " events " + ChatColor.WHITE + numPermissions + " permissions " + ChatColor.YELLOW + numTicks + " tick handlers " + ChatColor.BLUE + numMessages + " message handlers");
+		printInfo(ChatColor.WHITE + "[HatMeEnhanced] " + ChatColor.GRAY + "Attempting to load compatibility with Bukkit version " + ((InitRegistry) ServiceLocator.getService(InitRegistry.class)).getRegister(BukkitInitType.GAME_VERSION));
 	}
 	private void disableMessage() {
-		info(ChatColor.GREEN + "--== " + ChatColor.LIGHT_PURPLE + "HatMeEnhanced Disabled" + ChatColor.GREEN + " ==--");
+		printInfo(ChatColor.GREEN + "--== " + ChatColor.LIGHT_PURPLE + "HatMeEnhanced Disabled" + ChatColor.GREEN + " ==--");
 	}
 	
 	private void populateLanguage() {

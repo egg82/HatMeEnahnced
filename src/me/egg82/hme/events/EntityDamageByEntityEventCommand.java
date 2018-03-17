@@ -14,8 +14,8 @@ public class EntityDamageByEntityEventCommand extends EventCommand<EntityDamageB
 	private IRegistry<UUID> mobRegistry = ServiceLocator.getService(MobRegistry.class);
 	
 	//constructor
-	public EntityDamageByEntityEventCommand(EntityDamageByEntityEvent event) {
-		super(event);
+	public EntityDamageByEntityEventCommand() {
+		super();
 	}
 	
 	//public

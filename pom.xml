@@ -2,14 +2,14 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>ninja.egg82.plugins</groupId>
   <artifactId>HatMeEnhanced</artifactId>
-  <version>4.1.20</version>
+  <version>5.2.22</version>
   <name>HatMeEnhanced</name>
   <build>
     <sourceDirectory>src</sourceDirectory>
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.6.1</version>
+        <version>3.7.0</version>
         <configuration>
           <source>1.8</source>
           <target>1.8</target>
@@ -31,6 +31,9 @@
               <goal>shade</goal>
             </goals>
             <configuration>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+              </transformers>
               <minimizeJar>true</minimizeJar>
               <filters>
                 <filter>
@@ -44,19 +47,7 @@
                   </excludes>
                 </filter>
                 <filter>
-                  <artifact>ninja.egg82.lib:exception-lib</artifact>
-                  <includes>
-                    <include>ninja/egg82/**</include>
-                  </includes>
-                </filter>
-                <filter>
                   <artifact>ninja.egg82.lib:plugin-lib</artifact>
-                  <includes>
-                    <include>ninja/egg82/**</include>
-                  </includes>
-                </filter>
-                <filter>
-                  <artifact>ninja.egg82.lib:egg82-lib</artifact>
                   <includes>
                     <include>ninja/egg82/**</include>
                   </includes>
@@ -99,6 +90,14 @@
       <id>egg82-ninja</id>
       <url>https://www.myget.org/F/egg82-java/maven/</url>
     </repository>
+    <repository>
+      <id>fawe</id>
+      <url>http://ci.athion.net/job/FastAsyncWorldEdit/ws/mvn/</url>
+    </repository>
+    <repository>
+      <id>worldedit</id>
+      <url>http://maven.sk89q.com/repo</url>
+    </repository>
   </repositories>
   <dependencies>
     <dependency>
@@ -107,31 +106,25 @@
       <version>1.2</version>
     </dependency>
     <dependency>
-      <groupId>org.spigotmc</groupId>
-      <artifactId>spigot-api</artifactId>
-      <version>1.12.1-R0.1-SNAPSHOT</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
       <groupId>org.bukkit</groupId>
       <artifactId>bukkit</artifactId>
-      <version>1.12.1-R0.1-SNAPSHOT</version>
+      <version>1.12.2-R0.1-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>ninja.egg82.lib</groupId>
       <artifactId>egg82-lib</artifactId>
-      <version>[0.0.0,)</version>
+      <version>2.7.36</version>
     </dependency>
     <dependency>
       <groupId>ninja.egg82.lib</groupId>
       <artifactId>plugin-lib</artifactId>
-      <version>[0.0.0,)</version>
+      <version>2.4.24</version>
     </dependency>
     <dependency>
       <groupId>ninja.egg82.lib</groupId>
       <artifactId>exception-lib</artifactId>
-      <version>[0.0.0,)</version>
+      <version>1.1.15</version>
     </dependency>
     <dependency>
       <groupId>net.gravitydevelopment.updater</groupId>
@@ -142,6 +135,18 @@
       <groupId>ru.beykerykt</groupId>
       <artifactId>LightAPI</artifactId>
       <version>3.2.4</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.boydti</groupId>
+      <artifactId>fawe-api</artifactId>
+      <version>latest</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.sk89q.worldedit</groupId>
+      <artifactId>worldedit-core</artifactId>
+      <version>6.1.4-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
   </dependencies>

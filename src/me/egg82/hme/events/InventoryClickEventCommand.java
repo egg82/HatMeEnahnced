@@ -11,6 +11,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
 import me.egg82.hme.services.GlowRegistry;
+import me.egg82.hme.utils.InventoryUtil;
 import me.egg82.hme.reflection.light.ILightHelper;
 import me.egg82.hme.services.GlowMaterialRegistry;
 import ninja.egg82.patterns.IRegistry;
@@ -24,8 +25,8 @@ public class InventoryClickEventCommand extends EventCommand<InventoryClickEvent
 	private ILightHelper lightHelper = ServiceLocator.getService(ILightHelper.class);
 	
 	//constructor
-	public InventoryClickEventCommand(InventoryClickEvent event) {
-		super(event);
+	public InventoryClickEventCommand() {
+		super();
 	}
 	
 	//public
@@ -36,7 +37,7 @@ public class InventoryClickEventCommand extends EventCommand<InventoryClickEvent
 			return;
 		}
 		
-		Inventory clicked = event.getClickedInventory();
+		Inventory clicked = InventoryUtil.getClickedInventory(event);
 		
 		if (clicked == null || clicked.getType() != InventoryType.PLAYER) {
 			return;

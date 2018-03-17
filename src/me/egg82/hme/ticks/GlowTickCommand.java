@@ -24,7 +24,7 @@ public class GlowTickCommand extends TickCommand {
 	//constructor
 	public GlowTickCommand() {
 		super();
-		ticks = 5l;
+		ticks = 5L;
 	}
 	
 	//public

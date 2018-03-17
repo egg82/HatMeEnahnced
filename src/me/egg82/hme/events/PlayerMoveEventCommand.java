@@ -18,8 +18,8 @@ public class PlayerMoveEventCommand extends EventCommand<PlayerMoveEvent> {
 	private ILightHelper lightHelper = ServiceLocator.getService(ILightHelper.class);
 	
 	//constructor
-	public PlayerMoveEventCommand(PlayerMoveEvent event) {
-		super(event);
+	public PlayerMoveEventCommand() {
+		super();
 	}
 	
 	//public

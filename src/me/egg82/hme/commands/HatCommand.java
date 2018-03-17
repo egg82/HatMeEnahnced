@@ -6,7 +6,6 @@ import java.util.UUID;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -46,8 +45,8 @@ public class HatCommand extends PluginCommand {
 	private IPlayerHelper playerUtil = ServiceLocator.getService(IPlayerHelper.class);
 	
 	//constructor
-	public HatCommand(CommandSender sender, org.bukkit.command.Command command, String label, String[] args) {
-		super(sender, command, label, args);
+	public HatCommand() {
+		super();
 	}
 	
 	//public
@@ -334,33 +333,12 @@ public class HatCommand extends PluginCommand {
 			return true;
 		}
 		
-		int slot = -1;
-		if (helmet.getDurability() == 0) {
-			inventory.setHelmet(null);
-			Map<Integer, ? extends ItemStack> slots = inventory.all(helmet.getType());
-			
-			for (Map.Entry<Integer, ? extends ItemStack> entry : slots.entrySet()) {
-				int amount = entry.getValue().getAmount();
-				if (amount - helmet.getAmount() <= 64) {
-					helmet.setAmount(helmet.getAmount() + amount);
-					slot = entry.getKey();
-					break;
-				}
-			}
-			
-			if (slot == -1) {
-				slot = inventory.firstEmpty();
-			}
-		} else {
-			slot = inventory.firstEmpty();
-		}
-		
-		if (slot == -1) {
+		Map<Integer, ItemStack> dropped = inventory.addItem(helmet);
+		if (dropped.size() > 0) {
 			return false;
 		}
 		
 		inventory.setHelmet(null);
-		inventory.setItem(slot, helmet);
 		return true;
 	}
 }

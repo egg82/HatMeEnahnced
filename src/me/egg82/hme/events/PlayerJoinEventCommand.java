@@ -22,8 +22,8 @@ public class PlayerJoinEventCommand extends EventCommand<PlayerJoinEvent> {
 	private ILightHelper lightHelper = ServiceLocator.getService(ILightHelper.class);
 	
 	//constructor
-	public PlayerJoinEventCommand(PlayerJoinEvent event) {
-		super(event);
+	public PlayerJoinEventCommand() {
+		super();
 	}
 	
 	//public

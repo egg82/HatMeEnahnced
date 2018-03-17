@@ -14,8 +14,8 @@ public class EntityDeathEventCommand extends EventCommand<EntityDeathEvent> {
 	private IRegistry<UUID> mobRegistry = ServiceLocator.getService(MobRegistry.class);
 	
 	//constructor
-	public EntityDeathEventCommand(EntityDeathEvent event) {
-		super(event);
+	public EntityDeathEventCommand() {
+		super();
 	}
 	
 	//public

@@ -5,7 +5,6 @@ import java.util.UUID;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -40,8 +39,8 @@ public class UnhatCommand extends PluginCommand {
 	private IEntityHelper entityUtil = ServiceLocator.getService(IEntityHelper.class);
 	
 	//constructor
-	public UnhatCommand(CommandSender sender, org.bukkit.command.Command command, String label, String[] args) {
-		super(sender, command, label, args);
+	public UnhatCommand() {
+		super();
 	}
 	
 	//public
@@ -69,7 +68,7 @@ public class UnhatCommand extends PluginCommand {
 		UUID uuid = player.getUniqueId();
 		
 		if (args.length == 0) {
-			if (!removeBlockHat(player.getInventory())) {
+			if (!removeHat(player.getInventory())) {
 				sender.sendMessage(LanguageUtil.getString(LanguageType.INVENTORY_FULL));
 				onError().invoke(this, new ExceptionEventArgs<InventoryFullException>(new InventoryFullException(player.getInventory(), player.getInventory().getHelmet())));
 				return;
@@ -98,7 +97,7 @@ public class UnhatCommand extends PluginCommand {
 			}
 			UUID otherUuid = other.getUniqueId();
 			
-			if (!removeBlockHat(other.getInventory())) {
+			if (!removeHat(other.getInventory())) {
 				sender.sendMessage(LanguageUtil.getString(LanguageType.PLAYER_IMMUNE));
 				onError().invoke(this, new ExceptionEventArgs<InventoryFullException>(new InventoryFullException(other.getInventory(), other.getInventory().getHelmet())));
 				return;
@@ -131,40 +130,19 @@ public class UnhatCommand extends PluginCommand {
 		sender.sendMessage("No more hat :(");
 	}
 	
-	private boolean removeBlockHat(PlayerInventory inventory) {
+	private boolean removeHat(PlayerInventory inventory) {
 		ItemStack helmet = inventory.getHelmet();
 		
 		if (helmet == null || helmet.getType() == Material.AIR || helmet.getAmount() == 0) {
 			return true;
 		}
 		
-		int slot = -1;
-		if (helmet.getDurability() == 0) {
-			inventory.setHelmet(null);
-			Map<Integer, ? extends ItemStack> slots = inventory.all(helmet.getType());
-			
-			for (Map.Entry<Integer, ? extends ItemStack> entry : slots.entrySet()) {
-				int amount = entry.getValue().getAmount();
-				if (amount - helmet.getAmount() <= helmet.getMaxStackSize()) {
-					helmet.setAmount(helmet.getAmount() + amount);
-					slot = entry.getKey();
-					break;
-				}
-			}
-			
-			if (slot == -1) {
-				slot = inventory.firstEmpty();
-			}
-		} else {
-			slot = inventory.firstEmpty();
-		}
-		
-		if (slot == -1) {
+		Map<Integer, ItemStack> dropped = inventory.addItem(helmet);
+		if (dropped.size() > 0) {
 			return false;
 		}
 		
 		inventory.setHelmet(null);
-		inventory.setItem(slot, helmet);
 		return true;
 	}
 }

@@ -1,7 +1,9 @@
 name: HatMeEnhanced
 main: me.egg82.hme.HatMeEnhanced
-version: 4.1.20
-softdepend: [LightAPI]
+version: 5.2.22
+author: egg82
+description: What a lovely hat!
+softdepend: [ProtocolLib,LightAPI,FastAsyncWorldEdit]
 commands:
   hat:
     description: Puts the item (or item stack with -a) in your hand on your (or other player's) head. Use an empty hand to select a mob or player hat. Optionally uses an item ID or type instead. 

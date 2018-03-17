@@ -2,19 +2,19 @@ package me.egg82.hme.events;
 
 import java.util.UUID;
 
-import org.bukkit.event.entity.EntityTargetEvent;
+import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 
 import me.egg82.hme.services.MobRegistry;
 import ninja.egg82.patterns.IRegistry;
 import ninja.egg82.patterns.ServiceLocator;
 import ninja.egg82.plugin.commands.EventCommand;
 
-public class EntityTargetEventCommand extends EventCommand<EntityTargetEvent> {
+public class EntityTargetLivingEntityEventCommand extends EventCommand<EntityTargetLivingEntityEvent> {
 	//vars
 	private IRegistry<UUID> mobRegistry = ServiceLocator.getService(MobRegistry.class);
 	
 	//constructor
-	public EntityTargetEventCommand() {
+	public EntityTargetLivingEntityEventCommand() {
 		super();
 	}
 	

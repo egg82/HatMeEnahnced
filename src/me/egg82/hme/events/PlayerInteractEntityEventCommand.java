@@ -25,8 +25,8 @@ public class PlayerInteractEntityEventCommand extends EventCommand<PlayerInterac
 	private IEntityHelper entityUtil = ServiceLocator.getService(IEntityHelper.class);
 	
 	//constructor
-	public PlayerInteractEntityEventCommand(PlayerInteractEntityEvent event) {
-		super(event);
+	public PlayerInteractEntityEventCommand() {
+		super();
 	}
 	
 	//public

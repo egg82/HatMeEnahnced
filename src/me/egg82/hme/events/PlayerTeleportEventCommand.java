@@ -18,8 +18,8 @@ public class PlayerTeleportEventCommand extends EventCommand<PlayerTeleportEvent
 	private ILightHelper lightHelper = ServiceLocator.getService(ILightHelper.class);
 	
 	//constructor
-	public PlayerTeleportEventCommand(PlayerTeleportEvent event) {
-		super(event);
+	public PlayerTeleportEventCommand() {
+		super();
 	}
 	
 	//public

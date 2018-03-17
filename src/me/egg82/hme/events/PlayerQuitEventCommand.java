@@ -24,8 +24,8 @@ public class PlayerQuitEventCommand extends EventCommand<PlayerQuitEvent> {
 	private ILightHelper lightHelper = ServiceLocator.getService(ILightHelper.class);
 	
 	//constructor
-	public PlayerQuitEventCommand(PlayerQuitEvent event) {
-		super(event);
+	public PlayerQuitEventCommand() {
+		super();
 	}
 	
 	//public
