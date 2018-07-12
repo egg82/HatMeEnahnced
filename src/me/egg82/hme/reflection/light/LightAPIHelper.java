@@ -7,8 +7,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 
-import ninja.egg82.plugin.utils.TaskUtil;
-import ninja.egg82.utils.CollectionUtil;
+import ninja.egg82.bukkit.utils.TaskUtil;
+import ninja.egg82.core.CollectionUtil;
 import ru.beykerykt.lightapi.LightAPI;
 import ru.beykerykt.lightapi.chunks.ChunkInfo;
 

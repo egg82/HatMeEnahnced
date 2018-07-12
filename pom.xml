@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>ninja.egg82.plugins</groupId>
   <artifactId>HatMeEnhanced</artifactId>
-  <version>5.2.22</version>
+  <version>6.2.24</version>
   <name>HatMeEnhanced</name>
   <build>
     <sourceDirectory>src</sourceDirectory>
@@ -23,7 +23,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
-        <version>3.0.0</version>
+        <version>3.1.0</version>
         <executions>
           <execution>
             <phase>package</phase>
@@ -34,7 +34,7 @@
               <transformers>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
               </transformers>
-              <minimizeJar>true</minimizeJar>
+              <minimizeJar>false</minimizeJar>
               <filters>
                 <filter>
                   <artifact>*:*</artifact>
@@ -44,13 +44,9 @@
                     <exclude>META-INF/*.RSA</exclude>
                     <exclude>**/*.html</exclude>
                     <exclude>**/*.txt</exclude>
+                    <exclude>org/junit/**</exclude>
+					<exclude>org/hamcrest/**</exclude>
                   </excludes>
-                </filter>
-                <filter>
-                  <artifact>ninja.egg82.lib:plugin-lib</artifact>
-                  <includes>
-                    <include>ninja/egg82/**</include>
-                  </includes>
                 </filter>
               </filters>
               <relocations>
@@ -59,12 +55,16 @@
                   <shadedPattern>me.egg82.hme.lib.ninja.egg82</shadedPattern>
                 </relocation>
                 <relocation>
+                  <pattern>me.egg82.extern</pattern>
+                  <shadedPattern>me.egg82.hme.extern</shadedPattern>
+                </relocation>
+                <relocation>
                   <pattern>org.bstats</pattern>
-                  <shadedPattern>me.egg82.hme.lib.org.bstats</shadedPattern>
+                  <shadedPattern>me.egg82.hme.extern.org.bstats</shadedPattern>
                 </relocation>
                 <relocation>
                   <pattern>net.gravitydevelopment</pattern>
-                  <shadedPattern>me.egg82.hme.lib.net.gravitydevelopment</shadedPattern>
+                  <shadedPattern>me.egg82.hme.extern.net.gravitydevelopment</shadedPattern>
                 </relocation>
               </relocations>
             </configuration>
@@ -105,26 +105,58 @@
       <artifactId>bstats-bukkit</artifactId>
       <version>1.2</version>
     </dependency>
-    <dependency>
+    <!-- <dependency>
       <groupId>org.bukkit</groupId>
       <artifactId>bukkit</artifactId>
       <version>1.12.2-R0.1-SNAPSHOT</version>
       <scope>provided</scope>
+    </dependency> -->
+    <dependency>
+      <groupId>org.spigotmc</groupId>
+      <artifactId>spigot-api</artifactId>
+      <version>1.12.2-R0.1-SNAPSHOT</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.bukkit</groupId>
+      <artifactId>bukkit</artifactId>
+      <version>1.13-pre5-R0.1-SNAPSHOT</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>ninja.egg82.lib</groupId>
-      <artifactId>egg82-lib</artifactId>
-      <version>2.7.36</version>
+      <artifactId>bukkit</artifactId>
+      <version>1.1.7</version>
     </dependency>
     <dependency>
       <groupId>ninja.egg82.lib</groupId>
-      <artifactId>plugin-lib</artifactId>
-      <version>2.4.24</version>
+      <artifactId>plugin-common</artifactId>
+      <version>1.0.5</version>
     </dependency>
     <dependency>
       <groupId>ninja.egg82.lib</groupId>
       <artifactId>exception-lib</artifactId>
-      <version>1.1.15</version>
+      <version>2.0.6</version>
+    </dependency>
+    <dependency>
+      <groupId>ninja.egg82.lib</groupId>
+      <artifactId>collections-lib</artifactId>
+      <version>1.2.1</version>
+    </dependency>
+    <dependency>
+      <groupId>ninja.egg82.lib</groupId>
+      <artifactId>extended-collections-lib</artifactId>
+      <version>1.0.2</version>
+    </dependency>
+    <dependency>
+      <groupId>ninja.egg82.lib</groupId>
+      <artifactId>service-lib</artifactId>
+      <version>1.0.1</version>
+    </dependency>
+    <dependency>
+      <groupId>ninja.egg82.lib</groupId>
+      <artifactId>threading-lib</artifactId>
+      <version>1.0.2</version>
     </dependency>
     <dependency>
       <groupId>net.gravitydevelopment.updater</groupId>

@@ -2,25 +2,24 @@ package me.egg82.hme.events;
 
 import java.util.UUID;
 
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 
-import me.egg82.hme.enums.LanguageType;
 import me.egg82.hme.enums.PermissionsType;
-import me.egg82.hme.services.HatRegistry;
-import me.egg82.hme.services.MobRegistry;
-import ninja.egg82.patterns.IRegistry;
+import me.egg82.hme.registries.HatRegistry;
+import me.egg82.hme.registries.MobRegistry;
+import ninja.egg82.bukkit.reflection.entity.IEntityHelper;
+import ninja.egg82.bukkit.utils.CommandUtil;
 import ninja.egg82.patterns.ServiceLocator;
-import ninja.egg82.plugin.commands.EventCommand;
-import ninja.egg82.plugin.reflection.entity.IEntityHelper;
-import ninja.egg82.plugin.utils.CommandUtil;
-import ninja.egg82.plugin.utils.LanguageUtil;
+import ninja.egg82.patterns.registries.IRegistry;
+import ninja.egg82.plugin.handlers.events.EventHandler;
 
-public class PlayerInteractEntityEventCommand extends EventCommand<PlayerInteractEntityEvent> {
+public class PlayerInteractEntityEventCommand extends EventHandler<PlayerInteractEntityEvent> {
 	//vars
-	private IRegistry<UUID> hatRegistry = ServiceLocator.getService(HatRegistry.class);
-	private IRegistry<UUID> mobRegistry = ServiceLocator.getService(MobRegistry.class);
+	private IRegistry<UUID, UUID> hatRegistry = ServiceLocator.getService(HatRegistry.class);
+	private IRegistry<UUID, UUID> mobRegistry = ServiceLocator.getService(MobRegistry.class);
 	
 	private IEntityHelper entityUtil = ServiceLocator.getService(IEntityHelper.class);
 	
@@ -46,30 +45,30 @@ public class PlayerInteractEntityEventCommand extends EventCommand<PlayerInterac
 			return;
 		}
 		
-		UUID hatUuid = hatRegistry.getRegister(uuid, UUID.class);
+		UUID hatUuid = hatRegistry.getRegister(uuid);
 		
 		// Need to make sure the entity isn't already a hat
 		if (mobRegistry.hasValue(entityUuid)) {
-			player.sendMessage(LanguageUtil.getString(LanguageType.MOB_OWNED));
+			player.sendMessage(ChatColor.RED + "That mob/player is already someone else's hat!");
 			hatRegistry.removeRegister(uuid);
 			return;
 		}
 		
 		// Is the target a player or a mob?
 		if (entity instanceof Player) {
-			if (!CommandUtil.hasPermission(player, PermissionsType.PLAYER)) {
-				player.sendMessage(LanguageUtil.getString(LanguageType.INVALID_PERMISSIONS_HAT_TYPE));
+			if (!player.hasPermission(PermissionsType.PLAYER)) {
+				player.sendMessage(ChatColor.RED + "You do not have permissions to use mob or player hats!");
 				hatRegistry.removeRegister(uuid);
 				return;
 			}
-			if (CommandUtil.hasPermission(entity, PermissionsType.IMMUNE)) {
-				player.sendMessage(LanguageUtil.getString(LanguageType.PLAYER_IMMUNE));
+			if (entity.hasPermission(PermissionsType.IMMUNE)) {
+				player.sendMessage(ChatColor.RED + "Player is immune.");
 				hatRegistry.removeRegister(uuid);
 				return;
 			}
 		} else {
-			if (!CommandUtil.hasPermission(player, PermissionsType.MOB + "." + entity.getType().name().toLowerCase())) {
-				player.sendMessage(LanguageUtil.getString(LanguageType.INVALID_PERMISSIONS_HAT_TYPE));
+			if (!player.hasPermission(PermissionsType.MOB + "." + entity.getType().name().toLowerCase())) {
+				player.sendMessage(ChatColor.RED + "You do not have permissions to use that type of hat!");
 				hatRegistry.removeRegister(uuid);
 				return;
 			}
@@ -86,7 +85,7 @@ public class PlayerInteractEntityEventCommand extends EventCommand<PlayerInterac
 			
 			// Need to make sure they're online
 			if (hatPlayer == null) {
-				player.sendMessage(LanguageUtil.getString(LanguageType.PLAYER_OFFLINE));
+				player.sendMessage(ChatColor.RED + "Player could not be found.");
 				return;
 			}
 			

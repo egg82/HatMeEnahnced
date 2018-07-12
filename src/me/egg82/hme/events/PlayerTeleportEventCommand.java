@@ -5,16 +5,16 @@ import java.util.UUID;
 import org.bukkit.Location;
 import org.bukkit.event.player.PlayerTeleportEvent;
 
+import me.egg82.hme.lists.GlowSet;
 import me.egg82.hme.reflection.light.ILightHelper;
-import me.egg82.hme.services.GlowRegistry;
-import ninja.egg82.patterns.IRegistry;
+import ninja.egg82.bukkit.utils.LocationUtil;
+import ninja.egg82.concurrent.IConcurrentSet;
 import ninja.egg82.patterns.ServiceLocator;
-import ninja.egg82.plugin.commands.EventCommand;
-import ninja.egg82.plugin.utils.LocationUtil;
+import ninja.egg82.plugin.handlers.events.EventHandler;
 
-public class PlayerTeleportEventCommand extends EventCommand<PlayerTeleportEvent> {
+public class PlayerTeleportEventCommand extends EventHandler<PlayerTeleportEvent> {
 	//vars
-	private IRegistry<UUID> glowRegistry = ServiceLocator.getService(GlowRegistry.class);
+	private IConcurrentSet<UUID> glowSet = ServiceLocator.getService(GlowSet.class);
 	private ILightHelper lightHelper = ServiceLocator.getService(ILightHelper.class);
 	
 	//constructor
@@ -30,7 +30,7 @@ public class PlayerTeleportEventCommand extends EventCommand<PlayerTeleportEvent
 			return;
 		}
 		
-		if (!glowRegistry.hasRegister(event.getPlayer().getUniqueId())) {
+		if (!glowSet.contains(event.getPlayer().getUniqueId())) {
 			return;
 		}
 		

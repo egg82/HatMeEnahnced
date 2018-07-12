@@ -6,19 +6,20 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerQuitEvent;
 
-import ninja.egg82.patterns.IRegistry;
-import ninja.egg82.patterns.ServiceLocator;
-import ninja.egg82.plugin.commands.EventCommand;
-import ninja.egg82.plugin.reflection.entity.IEntityHelper;
-import ninja.egg82.plugin.utils.CommandUtil;
+import me.egg82.hme.lists.GlowSet;
 import me.egg82.hme.reflection.light.ILightHelper;
-import me.egg82.hme.services.GlowRegistry;
-import me.egg82.hme.services.MobRegistry;
+import me.egg82.hme.registries.MobRegistry;
+import ninja.egg82.bukkit.reflection.entity.IEntityHelper;
+import ninja.egg82.bukkit.utils.CommandUtil;
+import ninja.egg82.concurrent.IConcurrentSet;
+import ninja.egg82.patterns.ServiceLocator;
+import ninja.egg82.patterns.registries.IRegistry;
+import ninja.egg82.plugin.handlers.events.EventHandler;
 
-public class PlayerQuitEventCommand extends EventCommand<PlayerQuitEvent> {
+public class PlayerQuitEventCommand extends EventHandler<PlayerQuitEvent> {
 	//vars
-	private IRegistry<UUID> mobRegistry = ServiceLocator.getService(MobRegistry.class);
-	private IRegistry<UUID> glowRegistry = ServiceLocator.getService(GlowRegistry.class);
+	private IRegistry<UUID, UUID> mobRegistry = ServiceLocator.getService(MobRegistry.class);
+	private IConcurrentSet<UUID> glowSet = ServiceLocator.getService(GlowSet.class);
 	
 	private IEntityHelper entityUtil = ServiceLocator.getService(IEntityHelper.class);
 	private ILightHelper lightHelper = ServiceLocator.getService(ILightHelper.class);
@@ -35,14 +36,13 @@ public class PlayerQuitEventCommand extends EventCommand<PlayerQuitEvent> {
 		Player player = event.getPlayer();
 		UUID uuid = player.getUniqueId();
 		
-		if (glowRegistry.hasRegister(uuid)) {
+		if (glowSet.remove(uuid)) {
 			Location loc = player.getLocation().clone();
 			loc.setX(loc.getBlockX() + 0.5d);
 			loc.setY(loc.getBlockY() + 1.0d);
 			loc.setZ(loc.getBlockZ() + 0.5d);
 			
 			lightHelper.removeLight(loc, false);
-			glowRegistry.removeRegister(uuid);
 		}
 		
 		if (mobRegistry.hasRegister(uuid)) {

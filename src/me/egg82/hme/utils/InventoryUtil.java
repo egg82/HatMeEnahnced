@@ -23,9 +23,9 @@ public class InventoryUtil {
 		}
 	}
 	public static Inventory getClickedInventory(InventoryDragEvent event) {
-		if (!event.getRawSlots().iterator().hasNext() || event.getRawSlots().iterator().next() < 0) {
+		if (!event.getRawSlots().iterator().hasNext() || event.getRawSlots().iterator().next().intValue() < 0) {
 			return null;
-		} else if (event.getView().getTopInventory() != null && event.getRawSlots().iterator().next() < event.getView().getTopInventory().getSize()) {
+		} else if (event.getView().getTopInventory() != null && event.getRawSlots().iterator().next().intValue() < event.getView().getTopInventory().getSize()) {
 			return event.getView().getTopInventory();
 		} else {
 			return event.getView().getBottomInventory();

@@ -4,14 +4,14 @@ import java.util.UUID;
 
 import org.bukkit.event.entity.EntityTargetEvent;
 
-import me.egg82.hme.services.MobRegistry;
-import ninja.egg82.patterns.IRegistry;
+import me.egg82.hme.registries.MobRegistry;
 import ninja.egg82.patterns.ServiceLocator;
-import ninja.egg82.plugin.commands.EventCommand;
+import ninja.egg82.patterns.registries.IRegistry;
+import ninja.egg82.plugin.handlers.events.EventHandler;
 
-public class EntityTargetEventCommand extends EventCommand<EntityTargetEvent> {
+public class EntityTargetEventCommand extends EventHandler<EntityTargetEvent> {
 	//vars
-	private IRegistry<UUID> mobRegistry = ServiceLocator.getService(MobRegistry.class);
+	private IRegistry<UUID, UUID> mobRegistry = ServiceLocator.getService(MobRegistry.class);
 	
 	//constructor
 	public EntityTargetEventCommand() {
@@ -34,7 +34,7 @@ public class EntityTargetEventCommand extends EventCommand<EntityTargetEvent> {
 		UUID targetUuid = event.getTarget().getUniqueId();
 		
 		// Your own hat can't target you!
-		if (entityUuid.equals(mobRegistry.getRegister(targetUuid, UUID.class))) {
+		if (entityUuid.equals(mobRegistry.getRegister(targetUuid))) {
 			event.setCancelled(true);
 		}
 	}

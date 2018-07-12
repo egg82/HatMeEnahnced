@@ -1,13 +1,15 @@
 name: HatMeEnhanced
 main: me.egg82.hme.HatMeEnhanced
-version: 5.2.22
+version: 6.2.24
 author: egg82
 description: What a lovely hat!
 softdepend: [ProtocolLib,LightAPI,FastAsyncWorldEdit]
 commands:
   hat:
     description: Puts the item (or item stack with -a) in your hand on your (or other player's) head. Use an empty hand to select a mob or player hat. Optionally uses an item ID or type instead. 
-    usage: /hat [player,-a,itemID]
+    usage: /hat [player, -a, itemID]
+    permission: hme.hat
   unhat:
     description: Puts the item on your (or the player if specified) head back in the inventory (or down).
     usage: /unhat [player]
+    permission: hme.hat

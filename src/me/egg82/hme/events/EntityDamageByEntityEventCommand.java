@@ -4,14 +4,14 @@ import java.util.UUID;
 
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
-import me.egg82.hme.services.MobRegistry;
-import ninja.egg82.patterns.IRegistry;
+import me.egg82.hme.registries.MobRegistry;
 import ninja.egg82.patterns.ServiceLocator;
-import ninja.egg82.plugin.commands.EventCommand;
+import ninja.egg82.patterns.registries.IRegistry;
+import ninja.egg82.plugin.handlers.events.EventHandler;
 
-public class EntityDamageByEntityEventCommand extends EventCommand<EntityDamageByEntityEvent> {
+public class EntityDamageByEntityEventCommand extends EventHandler<EntityDamageByEntityEvent> {
 	//vars
-	private IRegistry<UUID> mobRegistry = ServiceLocator.getService(MobRegistry.class);
+	private IRegistry<UUID, UUID> mobRegistry = ServiceLocator.getService(MobRegistry.class);
 	
 	//constructor
 	public EntityDamageByEntityEventCommand() {
@@ -30,7 +30,7 @@ public class EntityDamageByEntityEventCommand extends EventCommand<EntityDamageB
 		UUID entityUuid = event.getEntity().getUniqueId();
 		
 		// Can't damage your own hat!
-		if (damagerUuid.equals(mobRegistry.getRegister(entityUuid, UUID.class))) {
+		if (damagerUuid.equals(mobRegistry.getRegister(entityUuid))) {
 			event.setCancelled(true);
 		}
 	}

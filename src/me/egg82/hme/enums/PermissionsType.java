@@ -2,7 +2,6 @@ package me.egg82.hme.enums;
 
 public class PermissionsType {
 	//vars
-	public static final String HAT = "hme.hat";
 	public static final String OTHERS = "hme.others";
 	
 	public static final String STACK = "hme.stack";
