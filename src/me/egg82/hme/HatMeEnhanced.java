@@ -73,13 +73,13 @@ public class HatMeEnhanced extends BasePlugin {
 		PluginManager manager = getServer().getPluginManager();
 		
 		if (manager.getPlugin("LightAPI") != null) {
-			printInfo(ChatColor.GREEN + "[HatMeEnhanced] Enabling support for LightAPI.");
+			printInfo(ChatColor.GREEN + "Enabling support for LightAPI.");
 			ServiceLocator.provideService(LightAPIHelper.class);
 		} else if (manager.getPlugin("FastAsyncWorldEdit") != null) {
-			printInfo(ChatColor.GREEN + "[HatMeEnhanced] Enabling support for FAWE.");
+			printInfo(ChatColor.GREEN + "Enabling support for FAWE.");
 			ServiceLocator.provideService(FAWELightHelper.class);
 		} else {
-			printWarning(ChatColor.RED + "[HatMeEnhanced] Neither LightAPI nor FAWE were found. Lights won't appear with blocks that light up.");
+			printWarning(ChatColor.RED + "Neither LightAPI nor FAWE were found. Lights won't appear with blocks that light up.");
 			ServiceLocator.provideService(NullLightHelper.class);
 		}
 	}
@@ -199,11 +199,11 @@ public class HatMeEnhanced extends BasePlugin {
 	};
 	
 	private void enableMessage() {
-		printInfo(ChatColor.AQUA + "HatMeEnhanced enabled.");
-		printInfo(ChatColor.GREEN + "[Version " + getDescription().getVersion() + "] " + ChatColor.RED + numCommands + " commands " + ChatColor.LIGHT_PURPLE + numEvents + " events " + ChatColor.YELLOW + numTicks + " tick handlers " + ChatColor.BLUE + numMessages + " message handlers");
-		printInfo(ChatColor.WHITE + "[HatMeEnhanced] " + ChatColor.GRAY + "Attempting to load compatibility with Bukkit version " + getGameVersion());
+		printInfo(ChatColor.GREEN + "Enabled.");
+		printInfo(ChatColor.AQUA + "[Version " + getDescription().getVersion() + "] " + ChatColor.DARK_GREEN + numCommands + " commands " + ChatColor.LIGHT_PURPLE + numEvents + " events " + ChatColor.GOLD + numTicks + " tick handlers " + ChatColor.BLUE + numMessages + " message handlers");
+		printInfo("Attempting to load compatibility with Bukkit version " + getGameVersion());
 	}
 	private void disableMessage() {
-		printInfo(ChatColor.GREEN + "--== " + ChatColor.LIGHT_PURPLE + "HatMeEnhanced Disabled" + ChatColor.GREEN + " ==--");
+		printInfo(ChatColor.RED + "Disabled");
 	}
 }
