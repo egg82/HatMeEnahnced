@@ -1,6 +1,6 @@
 name: HatMeEnhanced
 main: me.egg82.hme.HatMeEnhanced
-version: 6.2.24
+version: 6.2.25
 author: egg82
 description: What a lovely hat!
 softdepend: [ProtocolLib,LightAPI,FastAsyncWorldEdit]
