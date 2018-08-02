@@ -169,11 +169,12 @@ public class HatMeEnhanced extends BasePlugin {
 				
 				for (int i = 0; i < Math.min(latest.length, current.length); i++) {
 					if (latest[i] < current[i]) {
+						ThreadUtil.schedule(checkUpdate, 24L * 60L * 60L * 1000L);
 						return;
 					}
 				}
 				
-				printWarning(ChatColor.GREEN + "--== " + ChatColor.YELLOW + "HatMeEnhanced UPDATE AVAILABLE (Latest: " + latestVersion + " Current: " + currentVersion + ") " + ChatColor.GREEN + " ==--");
+				printWarning(ChatColor.GREEN + "--== " + ChatColor.YELLOW + "UPDATE AVAILABLE (Latest: " + latestVersion + " Current: " + currentVersion + ") " + ChatColor.GREEN + " ==--");
 			}
 			
 			ThreadUtil.schedule(checkUpdate, 24L * 60L * 60L * 1000L);
