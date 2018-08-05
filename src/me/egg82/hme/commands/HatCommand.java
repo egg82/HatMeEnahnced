@@ -18,7 +18,7 @@ import me.egg82.hme.lists.GlowSet;
 import me.egg82.hme.reflection.light.ILightHelper;
 import me.egg82.hme.registries.HatRegistry;
 import me.egg82.hme.registries.MaterialRegistry;
-import ninja.egg82.bukkit.reflection.player.IPlayerHelper;
+import ninja.egg82.bukkit.reflection.entity.IEntityHelper;
 import ninja.egg82.bukkit.utils.CommandUtil;
 import ninja.egg82.concurrent.IConcurrentSet;
 import ninja.egg82.patterns.ServiceLocator;
@@ -33,7 +33,7 @@ public class HatCommand extends CommandHandler {
 	private IRegistry<String, Material> materialRegistry = ServiceLocator.getService(MaterialRegistry.class);
 	
 	private ILightHelper lightHelper = ServiceLocator.getService(ILightHelper.class);
-	private IPlayerHelper playerUtil = ServiceLocator.getService(IPlayerHelper.class);
+	private IEntityHelper entityHelper = ServiceLocator.getService(IEntityHelper.class);
 	
 	//constructor
 	public HatCommand() {
@@ -59,7 +59,7 @@ public class HatCommand extends CommandHandler {
 		
 		Player player = (Player) sender.getHandle();
 		
-		ItemStack hand = playerUtil.getItemInMainHand(player);
+		ItemStack hand = entityHelper.getItemInMainHand(player);
 		if (hand == null || hand.getType() == Material.AIR || hand.getAmount() == 0) {
 			if (args.length == 0) {
 				// Hat self, mob/player
@@ -148,7 +148,7 @@ public class HatCommand extends CommandHandler {
 				// Get/Set correct stack amounts
 				blockHat.setAmount(1);
 				if (hand.getAmount() == 1) {
-					playerUtil.setItemInMainHand(player, null);
+					entityHelper.setItemInMainHand(player, null);
 				} else {
 					hand.setAmount(hand.getAmount() - 1);
 				}
@@ -179,7 +179,7 @@ public class HatCommand extends CommandHandler {
 					}
 					
 					blockHat.setAmount(hand.getAmount());
-					playerUtil.setItemInMainHand(player, null);
+					entityHelper.setItemInMainHand(player, null);
 					
 					// Remove old hat (if any)
 					if (!removeHat(inventory)) {
@@ -246,7 +246,7 @@ public class HatCommand extends CommandHandler {
 					// Get/Set correct stack amounts
 					blockHat.setAmount(1);
 					if (hand.getAmount() == 1) {
-						playerUtil.setItemInMainHand(player, null);
+						entityHelper.setItemInMainHand(player, null);
 					} else {
 						hand.setAmount(hand.getAmount() - 1);
 					}

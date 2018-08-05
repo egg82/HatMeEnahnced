@@ -1,6 +1,9 @@
 package me.egg82.hme;
 
+import java.util.List;
+import java.util.logging.Handler;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
@@ -20,16 +23,14 @@ import me.egg82.hme.ticks.DismountTickCommand;
 import net.gravitydevelopment.updater.Updater;
 import net.gravitydevelopment.updater.Updater.UpdateResult;
 import net.gravitydevelopment.updater.Updater.UpdateType;
+import ninja.egg82.analytics.exceptions.GameAnalyticsExceptionHandler;
+import ninja.egg82.analytics.exceptions.IExceptionHandler;
+import ninja.egg82.analytics.exceptions.RollbarExceptionHandler;
 import ninja.egg82.bukkit.BasePlugin;
 import ninja.egg82.bukkit.processors.CommandProcessor;
 import ninja.egg82.bukkit.processors.EventProcessor;
 import ninja.egg82.bukkit.utils.VersionUtil;
 import ninja.egg82.concurrent.IConcurrentSet;
-import ninja.egg82.exceptionHandlers.GameAnalyticsExceptionHandler;
-import ninja.egg82.exceptionHandlers.IExceptionHandler;
-import ninja.egg82.exceptionHandlers.RollbarExceptionHandler;
-import ninja.egg82.exceptionHandlers.builders.GameAnalyticsBuilder;
-import ninja.egg82.exceptionHandlers.builders.RollbarBuilder;
 import ninja.egg82.patterns.ServiceLocator;
 import ninja.egg82.plugin.messaging.IMessageHandler;
 import ninja.egg82.plugin.utils.PluginReflectUtil;
@@ -51,16 +52,8 @@ public class HatMeEnhanced extends BasePlugin {
 	public HatMeEnhanced() {
 		super();
 		
-		getLogger().setLevel(Level.WARNING);
-		IExceptionHandler oldExceptionHandler = ServiceLocator.getService(IExceptionHandler.class);
-		ServiceLocator.removeServices(IExceptionHandler.class);
-		
-		ServiceLocator.provideService(RollbarExceptionHandler.class, false);
 		exceptionHandler = ServiceLocator.getService(IExceptionHandler.class);
-		oldExceptionHandler.disconnect();
-		exceptionHandler.connect(new RollbarBuilder("455ef15583a54d6995c5dc1a64861a6c", "production", version, getServerId()), "HatMeEnhanced");
-		exceptionHandler.setUnsentExceptions(oldExceptionHandler.getUnsentExceptions());
-		exceptionHandler.setUnsentLogs(oldExceptionHandler.getUnsentLogs());
+		getLogger().setLevel(Level.WARNING);
 	}
 	
 	//public
@@ -85,6 +78,8 @@ public class HatMeEnhanced extends BasePlugin {
 	}
 	public void onEnable() {
 		super.onEnable();
+		
+		swapExceptionHandlers(new RollbarExceptionHandler("455ef15583a54d6995c5dc1a64861a6c", "production", version, getServerId(), getName()));
 		
 		numCommands = ServiceLocator.getService(CommandProcessor.class).addHandlersFromPackage("me.egg82.hme.commands", PluginReflectUtil.getCommandMapFromPackage("me.egg82.hme.commands", false, null, "Command"), false);
 		numEvents = ServiceLocator.getService(EventProcessor.class).addHandlersFromPackage("me.egg82.hme.events");
@@ -137,7 +132,9 @@ public class HatMeEnhanced extends BasePlugin {
 			}
 		});
 		ThreadUtil.schedule(checkUpdate, 24L * 60L * 60L * 1000L);
-		ThreadUtil.schedule(checkExceptionLimitReached, 60L * 60L * 1000L);
+		if (exceptionHandler.hasLimit()) {
+			ThreadUtil.schedule(checkExceptionLimitReached, 2L * 60L * 1000L);
+		}
 		
 		enableMessage();
 	}
@@ -151,6 +148,8 @@ public class HatMeEnhanced extends BasePlugin {
 		
 		ServiceLocator.getService(CommandProcessor.class).clear();
 		ServiceLocator.getService(EventProcessor.class).clear();
+		
+		exceptionHandler.close();
 		
 		disableMessage();
 	}
@@ -184,20 +183,35 @@ public class HatMeEnhanced extends BasePlugin {
 	private Runnable checkExceptionLimitReached = new Runnable() {
 		public void run() {
 			if (exceptionHandler.isLimitReached()) {
-				IExceptionHandler oldExceptionHandler = ServiceLocator.getService(IExceptionHandler.class);
-				ServiceLocator.removeServices(IExceptionHandler.class);
-				
-				ServiceLocator.provideService(GameAnalyticsExceptionHandler.class, false);
-				exceptionHandler = ServiceLocator.getService(IExceptionHandler.class);
-				oldExceptionHandler.disconnect();
-				exceptionHandler.connect(new GameAnalyticsBuilder("ffe3c97598f4a511d29e5aa4a086d99b", "118e0c9a4258a412624ad0f9104cadf6216c595a", version, getServerId()), getName());
-				exceptionHandler.setUnsentExceptions(oldExceptionHandler.getUnsentExceptions());
-				exceptionHandler.setUnsentLogs(oldExceptionHandler.getUnsentLogs());
+				swapExceptionHandlers(new GameAnalyticsExceptionHandler("ffe3c97598f4a511d29e5aa4a086d99b", "118e0c9a4258a412624ad0f9104cadf6216c595a", version, getServerId(), getName()));
 			}
 			
-			ThreadUtil.schedule(checkExceptionLimitReached, 60L * 60L * 1000L);
+			if (exceptionHandler.hasLimit()) {
+				ThreadUtil.schedule(checkExceptionLimitReached, 10L * 60L * 1000L);
+			}
 		}
 	};
+	
+	private void swapExceptionHandlers(IExceptionHandler newHandler) {
+		List<IExceptionHandler> oldHandlers = ServiceLocator.removeServices(IExceptionHandler.class);
+		
+		exceptionHandler = newHandler;
+		ServiceLocator.provideService(exceptionHandler);
+		
+		Logger logger = getLogger();
+		if (exceptionHandler instanceof Handler) {
+			logger.addHandler((Handler) exceptionHandler);
+		}
+		
+		for (IExceptionHandler handler : oldHandlers) {
+			if (handler instanceof Handler) {
+				logger.removeHandler((Handler) handler);
+			}
+			
+			handler.close();
+			exceptionHandler.addLogs(handler.getUnsentLogs());
+		}
+	}
 	
 	private void enableMessage() {
 		printInfo(ChatColor.GREEN + "Enabled.");

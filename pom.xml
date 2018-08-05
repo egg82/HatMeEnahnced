@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>ninja.egg82.plugins</groupId>
   <artifactId>HatMeEnhanced</artifactId>
-  <version>6.2.25</version>
+  <version>6.2.26</version>
   <name>HatMeEnhanced</name>
   <build>
     <sourceDirectory>src</sourceDirectory>
@@ -217,22 +217,22 @@
     <dependency>
       <groupId>ninja.egg82.lib</groupId>
       <artifactId>bukkit-1.12</artifactId>
-      <version>1.1.15</version>
+      <version>1.1.16</version>
     </dependency>
     <dependency>
       <groupId>ninja.egg82.lib</groupId>
       <artifactId>bukkit-1.13</artifactId>
-      <version>1.1.15</version>
+      <version>1.1.16</version>
     </dependency>
     <dependency>
       <groupId>ninja.egg82.lib</groupId>
       <artifactId>plugin-common</artifactId>
-      <version>1.0.9</version>
+      <version>1.1.10</version>
     </dependency>
     <dependency>
       <groupId>ninja.egg82.lib</groupId>
-      <artifactId>exception-lib</artifactId>
-      <version>2.0.8</version>
+      <artifactId>analytics-lib</artifactId>
+      <version>1.0.0</version>
     </dependency>
     <dependency>
       <groupId>ninja.egg82.lib</groupId>
@@ -252,17 +252,12 @@
     <dependency>
       <groupId>ninja.egg82.lib</groupId>
       <artifactId>service-lib</artifactId>
-      <version>1.0.2</version>
+      <version>1.0.3</version>
     </dependency>
     <dependency>
       <groupId>ninja.egg82.lib</groupId>
       <artifactId>threading-lib</artifactId>
       <version>1.0.3</version>
-    </dependency>
-    <dependency>
-      <groupId>com.github.ben-manes.caffeine</groupId>
-      <artifactId>caffeine</artifactId>
-      <version>2.6.2</version>
     </dependency>
     <dependency>
       <groupId>net.gravitydevelopment.updater</groupId>
