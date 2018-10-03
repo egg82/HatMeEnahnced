@@ -46,18 +46,18 @@
                     <exclude>**/*.txt</exclude>
                     <exclude>junit/**</exclude>
                     <exclude>org/junit/**</exclude>
-					<exclude>org/hamcrest/**</exclude>
-					<exclude>edu/umd/cs/findbugs/**</exclude>
+                    <exclude>org/hamcrest/**</exclude>
+                    <exclude>edu/umd/cs/findbugs/**</exclude>
                     <exclude>org/checkerframework/**</exclude>
                     <exclude>afu/**</exclude>
                     <exclude>org/codehaus/mojo/animal_sniffer/**</exclude>
                     <exclude>com/google/common/**</exclude>
-					<exclude>org/apache/commons/codec/**</exclude>
-					<exclude>org/apache/commons/io/**</exclude>
-					<exclude>org/apache/commons/lang/**</exclude>
-					<exclude>org/apache/commons/lang3/**</exclude>
-					<exclude>org/json/simple/**</exclude>
-					<exclude>org/yaml/**</exclude>
+                    <exclude>org/apache/commons/codec/**</exclude>
+                    <exclude>org/apache/commons/io/**</exclude>
+                    <exclude>org/apache/commons/lang/**</exclude>
+                    <exclude>org/apache/commons/lang3/**</exclude>
+                    <exclude>org/json/simple/**</exclude>
+                    <exclude>org/yaml/**</exclude>
                   </excludes>
                 </filter>
                 <filter>
@@ -217,22 +217,22 @@
     <dependency>
       <groupId>ninja.egg82.lib</groupId>
       <artifactId>bukkit-1.12</artifactId>
-      <version>1.1.16</version>
+      <version>1.1.20</version>
     </dependency>
     <dependency>
       <groupId>ninja.egg82.lib</groupId>
       <artifactId>bukkit-1.13</artifactId>
-      <version>1.1.16</version>
+      <version>1.1.19</version>
     </dependency>
     <dependency>
       <groupId>ninja.egg82.lib</groupId>
       <artifactId>plugin-common</artifactId>
-      <version>1.1.10</version>
+      <version>1.2.13</version>
     </dependency>
     <dependency>
       <groupId>ninja.egg82.lib</groupId>
       <artifactId>analytics-lib</artifactId>
-      <version>1.0.0</version>
+      <version>1.0.2</version>
     </dependency>
     <dependency>
       <groupId>ninja.egg82.lib</groupId>
@@ -257,7 +257,7 @@
     <dependency>
       <groupId>ninja.egg82.lib</groupId>
       <artifactId>threading-lib</artifactId>
-      <version>1.0.3</version>
+      <version>1.0.5</version>
     </dependency>
     <dependency>
       <groupId>net.gravitydevelopment.updater</groupId>
