@@ -8,7 +8,7 @@ public class InventoryUtil {
 	//vars
 	
 	//constructor
-	public InventoryUtil() {
+	private InventoryUtil() {
 		
 	}
 	

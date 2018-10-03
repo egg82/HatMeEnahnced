@@ -12,7 +12,7 @@ public class PermissionsType {
 	public static final String IMMUNE = "hme.immune";
 	
 	//constructor
-	public PermissionsType() {
+	private PermissionsType() {
 		
 	}
 	

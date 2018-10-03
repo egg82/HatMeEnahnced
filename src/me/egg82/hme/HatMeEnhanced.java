@@ -20,16 +20,12 @@ import me.egg82.hme.reflection.light.ILightHelper;
 import me.egg82.hme.reflection.light.LightAPIHelper;
 import me.egg82.hme.reflection.light.NullLightHelper;
 import me.egg82.hme.ticks.DismountTickCommand;
-import net.gravitydevelopment.updater.Updater;
-import net.gravitydevelopment.updater.Updater.UpdateResult;
-import net.gravitydevelopment.updater.Updater.UpdateType;
 import ninja.egg82.analytics.exceptions.GameAnalyticsExceptionHandler;
 import ninja.egg82.analytics.exceptions.IExceptionHandler;
 import ninja.egg82.analytics.exceptions.RollbarExceptionHandler;
 import ninja.egg82.bukkit.BasePlugin;
 import ninja.egg82.bukkit.processors.CommandProcessor;
 import ninja.egg82.bukkit.processors.EventProcessor;
-import ninja.egg82.bukkit.utils.VersionUtil;
 import ninja.egg82.concurrent.IConcurrentSet;
 import ninja.egg82.patterns.ServiceLocator;
 import ninja.egg82.plugin.messaging.IMessageHandler;
@@ -39,18 +35,18 @@ import ninja.egg82.utils.ThreadUtil;
 public class HatMeEnhanced extends BasePlugin {
 	//vars
 	private Metrics metrics = null;
-	
-	private int numMessages = 0;
-	private int numCommands = 0;
-	private int numEvents = 0;
-	private int numTicks = 0;
-	
-	private IExceptionHandler exceptionHandler = null;
-	private String version = getDescription().getVersion();
+
+    private int numMessages = 0;
+    private int numCommands = 0;
+    private int numEvents = 0;
+    private int numTicks = 0;
+
+    private IExceptionHandler exceptionHandler = null;
+    private String version = getDescription().getVersion();
 	
 	//constructor
 	public HatMeEnhanced() {
-		super();
+		super(25040);
 		
 		exceptionHandler = ServiceLocator.getService(IExceptionHandler.class);
 		getLogger().setLevel(Level.WARNING);
@@ -59,6 +55,13 @@ public class HatMeEnhanced extends BasePlugin {
 	//public
 	public void onLoad() {
 		super.onLoad();
+
+		if (!Bukkit.getName().equals("Paper") && !Bukkit.getName().equals("PaperSpigot")) {
+            printWarning(ChatColor.AQUA + "============================================");
+            printWarning("Please note that HatMeEnhanced works better with Paper!");
+            printWarning("https://whypaper.emc.gs/");
+            printWarning(ChatColor.AQUA + "============================================");
+        }
 		
 		PluginReflectUtil.addServicesFromPackage("me.egg82.hme.registries", true);
 		PluginReflectUtil.addServicesFromPackage("me.egg82.hme.lists", true);
@@ -80,12 +83,14 @@ public class HatMeEnhanced extends BasePlugin {
 		super.onEnable();
 		
 		swapExceptionHandlers(new RollbarExceptionHandler("455ef15583a54d6995c5dc1a64861a6c", "production", version, getServerId(), getName()));
-		
+
+		ThreadUtil.rename(getName());
+
 		numCommands = ServiceLocator.getService(CommandProcessor.class).addHandlersFromPackage("me.egg82.hme.commands", PluginReflectUtil.getCommandMapFromPackage("me.egg82.hme.commands", false, null, "Command"), false);
 		numEvents = ServiceLocator.getService(EventProcessor.class).addHandlersFromPackage("me.egg82.hme.events");
 		numMessages = ServiceLocator.getService(IMessageHandler.class).addHandlersFromPackage("me.egg82.hme.messages");
 		numTicks = PluginReflectUtil.addServicesFromPackage("me.egg82.hme.ticks", false);
-		
+
 		Class<?> entityDismount = null;
 		try {
 			entityDismount = Class.forName("org.spigotmc.event.entity.EntityDismountEvent");
@@ -96,8 +101,9 @@ public class HatMeEnhanced extends BasePlugin {
 			// EntityDismountEvent exists, remove the tick handler for it
 			ServiceLocator.removeServices(DismountTickCommand.class);
 		}
+
+		enableMessage();
 		
-		ThreadUtil.rename(getName());
 		ThreadUtil.submit(new Runnable() {
 			public void run() {
 				try {
@@ -131,12 +137,11 @@ public class HatMeEnhanced extends BasePlugin {
 				}
 			}
 		});
-		ThreadUtil.schedule(checkUpdate, 24L * 60L * 60L * 1000L);
-		if (exceptionHandler.hasLimit()) {
-			ThreadUtil.schedule(checkExceptionLimitReached, 2L * 60L * 1000L);
-		}
-		
-		enableMessage();
+
+		ThreadUtil.submit(checkUpdate);
+        if (exceptionHandler.hasLimit()) {
+            ThreadUtil.schedule(checkExceptionLimitReached, 2L * 60L * 1000L);
+        }
 	}
 	public void onDisable() {
 		super.onDisable();
@@ -145,6 +150,15 @@ public class HatMeEnhanced extends BasePlugin {
 		
 		ILightHelper lightHelper = ServiceLocator.getService(ILightHelper.class);
 		lightHelper.removeAllLights();
+
+		List<IMessageHandler> services = ServiceLocator.removeServices(IMessageHandler.class);
+        for (IMessageHandler handler : services) {
+            try {
+                handler.close();
+            } catch (Exception ex) {
+
+            }
+        }
 		
 		ServiceLocator.getService(CommandProcessor.class).clear();
 		ServiceLocator.getService(EventProcessor.class).clear();
@@ -156,30 +170,40 @@ public class HatMeEnhanced extends BasePlugin {
 	
 	//private
 	private Runnable checkUpdate = new Runnable() {
-		public void run() {
-			Updater updater = new Updater(ServiceLocator.getService(JavaPlugin.class), 100559, getFile(), UpdateType.NO_DOWNLOAD, false);
-			if (updater.getResult() == UpdateResult.UPDATE_AVAILABLE) {
-				String latestVersion = updater.getLatestName();
-				latestVersion = latestVersion.substring(latestVersion.lastIndexOf('v') + 1);
-				String currentVersion = getDescription().getVersion();
-				
-				int[] latest = VersionUtil.parseVersion(latestVersion, '.');
-				int[] current = VersionUtil.parseVersion(currentVersion, '.');
-				
-				for (int i = 0; i < Math.min(latest.length, current.length); i++) {
-					if (latest[i] < current[i]) {
-						ThreadUtil.schedule(checkUpdate, 24L * 60L * 60L * 1000L);
-						return;
-					}
-				}
-				
-				printWarning(ChatColor.GREEN + "--== " + ChatColor.YELLOW + "UPDATE AVAILABLE (Latest: " + latestVersion + " Current: " + currentVersion + ") " + ChatColor.GREEN + " ==--");
-			}
-			
-			ThreadUtil.schedule(checkUpdate, 24L * 60L * 60L * 1000L);
-		}
+        public void run() {
+            if (isUpdateAvailable()) {
+                return;
+            }
+            
+            boolean update = false;
+            
+            try {
+                update = checkUpdate();
+            } catch (Exception ex) {
+                printWarning("Could not check for update.");
+                ex.printStackTrace();
+                ThreadUtil.schedule(checkUpdate, 60L * 60L * 1000L);
+                return;
+            }
+            
+            if (!update) {
+                ThreadUtil.schedule(checkUpdate, 60L * 60L * 1000L);
+                return;
+            }
+
+            String latestVersion = null;
+            try {
+                latestVersion = getLatestVersion();
+            } catch (Exception ex) {
+                ThreadUtil.schedule(checkUpdate, 60L * 60L * 1000L);
+                return;
+            }
+
+            printInfo(ChatColor.AQUA + "Update available! New version: " + ChatColor.YELLOW + latestVersion);
+
+            ThreadUtil.schedule(checkUpdate, 60L * 60L * 1000L);
+        }
 	};
-	
 	private Runnable checkExceptionLimitReached = new Runnable() {
 		public void run() {
 			if (exceptionHandler.isLimitReached()) {

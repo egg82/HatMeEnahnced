@@ -15,7 +15,7 @@ public class FAWELightHelper implements ILightHelper {
 	private ConcurrentHashMap<String, NMSMappedFaweQueue<?, ?, ?, ?>> queues = new ConcurrentHashMap<String, NMSMappedFaweQueue<?, ?, ?, ?>>();
 	
 	//constructor
-	public FAWELightHelper() {
+	private FAWELightHelper() {
 		
 	}
 	
@@ -71,6 +71,10 @@ public class FAWELightHelper implements ILightHelper {
 			}
 		});
 		lightLocations.clear();
+	}
+
+	public boolean isValidLibrary() {
+		return false;
 	}
 	
 	//private

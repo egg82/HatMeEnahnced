@@ -17,7 +17,7 @@ public class LightAPIHelper implements ILightHelper {
 	private ConcurrentHashMap<String, Location> lightLocations = new ConcurrentHashMap<String, Location>();
 	
 	//constructor
-	public LightAPIHelper() {
+	private LightAPIHelper() {
 		
 	}
 	
@@ -65,6 +65,10 @@ public class LightAPIHelper implements ILightHelper {
 		} else {
 			removeAllLightsInternal();
 		}
+	}
+
+	public boolean isValidLibrary() {
+		return false;
 	}
 	
 	//private

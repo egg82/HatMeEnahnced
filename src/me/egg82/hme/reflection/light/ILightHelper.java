@@ -8,4 +8,6 @@ public interface ILightHelper {
 	void removeLight(Location loc, boolean async);
 	void recreateLight(Location oldLoc, Location newLoc, boolean async);
 	void removeAllLights();
+
+	boolean isValidLibrary();
 }

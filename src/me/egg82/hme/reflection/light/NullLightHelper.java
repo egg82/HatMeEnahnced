@@ -6,7 +6,7 @@ public class NullLightHelper implements ILightHelper {
 	//vars
 	
 	//constructor
-	public NullLightHelper() {
+	private NullLightHelper() {
 		
 	}
 	
@@ -22,6 +22,10 @@ public class NullLightHelper implements ILightHelper {
 	}
 	public void removeAllLights() {
 		
+	}
+
+	public boolean isValidLibrary() {
+		return false;
 	}
 	
 	//private

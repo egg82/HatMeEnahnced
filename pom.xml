@@ -34,7 +34,6 @@
               <transformers>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
               </transformers>
-              <minimizeJar>false</minimizeJar>
               <filters>
                 <filter>
                   <artifact>*:*</artifact>
@@ -68,6 +67,7 @@
                   </excludes>
                 </filter>
               </filters>
+              <minimizeJar>false</minimizeJar>
               <relocations>
                 <relocation>
                   <pattern>com.github</pattern>
@@ -191,11 +191,6 @@
     </repository>
   </repositories>
   <dependencies>
-    <dependency>
-      <groupId>org.bstats</groupId>
-      <artifactId>bstats-bukkit</artifactId>
-      <version>1.2</version>
-    </dependency>
     <!-- <dependency>
       <groupId>org.bukkit</groupId>
       <artifactId>bukkit</artifactId>
@@ -203,16 +198,21 @@
       <scope>provided</scope>
     </dependency> -->
     <dependency>
+      <groupId>org.bukkit</groupId>
+      <artifactId>bukkit</artifactId>
+      <version>1.13-pre7-R0.1-SNAPSHOT</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
       <groupId>org.spigotmc</groupId>
       <artifactId>spigot-api</artifactId>
       <version>1.12.2-R0.1-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.bukkit</groupId>
-      <artifactId>bukkit</artifactId>
-      <version>1.13-pre7-R0.1-SNAPSHOT</version>
-      <scope>provided</scope>
+      <groupId>org.bstats</groupId>
+      <artifactId>bstats-bukkit</artifactId>
+      <version>1.2</version>
     </dependency>
     <dependency>
       <groupId>ninja.egg82.lib</groupId>
@@ -258,11 +258,6 @@
       <groupId>ninja.egg82.lib</groupId>
       <artifactId>threading-lib</artifactId>
       <version>1.0.5</version>
-    </dependency>
-    <dependency>
-      <groupId>net.gravitydevelopment.updater</groupId>
-      <artifactId>updater</artifactId>
-      <version>2.4</version>
     </dependency>
     <dependency>
       <groupId>ru.beykerykt</groupId>
